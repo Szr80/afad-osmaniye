@@ -14,15 +14,10 @@
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; gap: 15px; overflow-y: auto; }
         .kutu { background: #1e293b; padding: 25px; border-radius: 15px; border-left: 8px solid #f97316; width: 90%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.6rem; font-weight: bold; line-height: 1.3; }
-        
-        /* Onay Butonu */
         .btn-onay { display: none; padding: 18px; background: #22c55e; color: white; border: none; border-radius: 12px; font-size: 1.4rem; font-weight: bold; cursor: pointer; width: 90%; margin-top: 10px; }
-        
-        /* Vaka Geçmişi Tasarımı */
         .gecmis-panel { width: 90%; text-align: left; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; }
         .gecmis-baslik { color: #64748b; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
         .gecmis-item { background: #1e293b; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; font-size: 0.95rem; border-left: 4px solid #475569; color: #cbd5e1; }
-
         #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn-baslat { padding: 20px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
     </style>
@@ -42,15 +37,14 @@
     <div class="vaka-alani">
         <div class="kutu">
             <div style="color:#f97316; font-size:0.7rem; font-weight:800; margin-bottom:8px;">● AKTİF VAKA</div>
-            <div id="vakaMetin">Bekleniyor...</div>
+            <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
         </div>
 
         <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
 
         <div class="gecmis-panel">
             <div class="gecmis-baslik">Son Vakalar</div>
-            <div id="gecmisListe">
-                </div>
+            <div id="gecmisListe"></div>
         </div>
     </div>
 
@@ -68,6 +62,7 @@
         const gecmisListe = document.getElementById('gecmisListe');
 
         let vakaGecmisi = [];
+        let sonGelenMesaj = "";
 
         document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
@@ -82,32 +77,40 @@
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
-                const yeniMetin = data.metin;
-                const eskiMetin = document.getElementById('vakaMetin').innerText;
+                const yeniMetin = data.metin.trim();
+                const ekrandakiMetin = document.getElementById('vakaMetin').innerText;
 
-                // Yeni vaka geldiğinde (ve metin değiştiğinde)
-                if (!ilkAtlama && yeniMetin !== eskiMetin && yeniMetin !== "KOMUTA BEKLENİYOR...") {
+                // 1. ŞART: İlk açılış değilse
+                // 2. ŞART: Mesaj gerçekten değişmişse
+                // 3. ŞART: Mesaj "BEKLENİYOR" veya boş değilse
+                const vakaVarMi = !yeniMetin.includes("BEKLENİYOR") && yeniMetin !== "";
+
+                if (!ilkAtlama && yeniMetin !== sonGelenMesaj && vakaVarMi) {
                     
-                    // Geçmişe Ekle (Eski metni listeye at)
-                    if(eskiMetin !== "Bekleniyor...") {
-                        vakaGecmisi.unshift(eskiMetin);
+                    // Eski vaka mesajını (eğer vaka ise) geçmişe at
+                    if (ekrandakiMetin !== "KOMUTA BEKLENİYOR..." && ekrandakiMetin !== "") {
+                        vakaGecmisi.unshift(ekrandakiMetin);
                         if(vakaGecmisi.length > 3) vakaGecmisi.pop();
                         gecmisListe.innerHTML = vakaGecmisi.map(m => `<div class="gecmis-item">${m}</div>`).join('');
                     }
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     
-                    // Alarm Başlat
+                    // Alarm Çal
                     ses.loop = true;
-                    ses.play();
+                    ses.play().catch(e => console.log("Ses hatası:", e));
                     onayBtn.style.display = 'block';
 
-                    // 6 saniye sonra otomatik sesi durdur
+                    if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                 } else {
+                    // Sadece metni güncelle, alarm çalma
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                 }
+                
+                sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
             }
         });
