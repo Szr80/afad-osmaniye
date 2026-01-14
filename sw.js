@@ -1,4 +1,4 @@
-// sw.js - Hızlı Tepki ve Arka Plan Motoru
+// sw.js - Hızlı Tepki ve Kesintisiz Hizmet Sürümü
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -12,10 +12,11 @@ self.addEventListener('push', function(event) {
         body: event.data ? event.data.text() : 'Yeni AFAD Vakası Alındı!',
         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
         badge: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-        vibrate: [500, 110, 500, 110, 500],
+        vibrate: [500, 110, 500, 110, 500, 110, 500],
         requireInteraction: true,
         tag: 'afad-vaka-acil',
-        renotify: true
+        renotify: true,
+        priority: 'high'
     };
 
     event.waitUntil(
