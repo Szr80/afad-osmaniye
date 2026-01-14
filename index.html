@@ -6,7 +6,10 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VAKA 80">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f172a">
+    
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
     
@@ -14,12 +17,12 @@
 
     <style>
         body { 
-            background: #0f172a; color: white; font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: #0f172a; color: white; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             text-align: center; height: 100vh; display: flex; flex-direction: column; 
             margin: 0; overflow: hidden; justify-content: space-between;
         }
 
-        /* Üst Bilgi Paneli */
+        /* Üst Panel */
         .ust-panel { padding: 15px; background: #1e293b; border-bottom: 3px solid #f97316; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; line-height: 1; }
         #tarih { font-size: 1rem; color: #94a3b8; margin-top: 5px; letter-spacing: 1px; }
@@ -29,7 +32,7 @@
         .vaka-karti { 
             background: #1e293b; width: 100%; max-width: 600px; padding: 30px; 
             border-radius: 25px; border-left: 12px solid #f97316; text-align: left;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
         .vaka-etiket { font-size: 0.85rem; color: #f97316; font-weight: 800; letter-spacing: 2.5px; margin-bottom: 15px; display: flex; align-items: center; }
         .vaka-etiket::before { content: ""; width: 10px; height: 10px; background: #f97316; border-radius: 50%; margin-right: 10px; animation: blink 1s infinite; }
@@ -39,7 +42,7 @@
         .alt-birim { padding-bottom: 30px; opacity: 0.6; }
         .afad-logo-small { width: 60px; margin-bottom: 10px; }
 
-        /* İlk Giriş Kaplaması */
+        /* Aktivasyon Kaplaması */
         #aktivasyon { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: #0f172a; z-index: 10000; display: flex; flex-direction: column; 
@@ -64,7 +67,7 @@
 
     <div class="ust-panel">
         <div id="saat">00:00:00</div>
-        <div id="tarih">Yükleniyor...</div>
+        <div id="tarih">YÜKLENİYOR...</div>
     </div>
 
     <div class="vaka-alan">
@@ -93,70 +96,60 @@
         const db = getDatabase(app);
         const ses = document.getElementById('vakaSesi');
 
-        // 1. Arka Plan Kaydı (Service Worker)
+        // Service Worker Kaydı
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js', { scope: './' })
-            .then(reg => console.log("Arka plan sistemi devrede."));
+            .then(reg => console.log("PWA Kayıt Başarılı"));
         }
 
-        // 2. Saat/Tarih Güncelleme
-        function zamanGuncelle() {
-            const simdi = new Date();
-            document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
-            document.getElementById('tarih').innerText = simdi.toLocaleDateString('tr-TR', { 
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
-            }).toUpperCase();
+        // Saat/Tarih
+        function guncelle() {
+            const d = new Date();
+            document.getElementById('saat').innerText = d.toLocaleTimeString('tr-TR');
+            document.getElementById('tarih').innerText = d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
         }
-        setInterval(zamanGuncelle, 1000);
-        zamanGuncelle();
+        setInterval(guncelle, 1000); guncelle();
 
-        // 3. Aktivasyon ve İzinler
+        // Kilit Açma
         window.sistemiAktifEt = () => {
             document.getElementById('aktivasyon').style.display = 'none';
-            
-            if ("Notification" in window) {
-                Notification.requestPermission().then(p => {
-                    if(p === "granted") console.log("Bildirim izni tamam.");
-                });
+            if ("Notification" in window) { 
+                Notification.requestPermission(); 
             }
-            // Tarayıcı ses kilidini aç
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
         };
 
-        // 4. Bağlantı Tazeleme (Ekran açıldığında)
+        // Arka Plandan Dönüşte Bağlantıyı Tazele
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") goOnline(db);
         });
 
-        // 5. Firebase Vaka Dinleme
-        let ilkMesajAtla = true;
-        const vakaRef = ref(db, 'ortakKanal');
-        onValue(vakaRef, (snapshot) => {
+        // Vaka Dinle
+        let ilkMesaj = true;
+        onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
                 document.getElementById('vakaMetin').innerText = data.metin;
                 
-                // Eğer vaka "BEKLENİYOR" değilse ve yeni gelmişse uyar
-                if (!ilkMesajAtla && data.metin !== "KOMUTA MERKEZİNDEN HABER BEKLENİYOR...") {
-                    // Ses çal ve Titre (Ekranda açıksa)
+                if (!ilkMesaj && data.metin !== "KOMUTA MERKEZİNDEN HABER BEKLENİYOR...") {
                     ses.play().catch(() => {});
                     if (navigator.vibrate) navigator.vibrate([600, 200, 600, 200, 600]);
 
-                    // Üst Bildirim Gönder (Tarayıcı destekliyorsa)
+                    // Üst Bildirim Tetikle
                     if (Notification.permission === "granted") {
                         navigator.serviceWorker.ready.then(reg => {
                             reg.showNotification('🚨 1 YENİ VAKA VAR!', {
                                 body: data.metin,
                                 icon: 'https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png',
                                 vibrate: [500, 200, 500],
-                                tag: 'afad-vaka-ihbar',
+                                tag: 'afad-vaka',
                                 renotify: true,
                                 requireInteraction: true
                             });
                         });
                     }
                 }
-                ilkMesajAtla = false;
+                ilkMesaj = false;
             }
         });
     </script>
