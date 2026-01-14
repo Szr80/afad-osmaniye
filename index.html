@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
+    
     <link rel="manifest" href="manifest.json">
     <title>OSMANİYE AFAD</title>
     <style>
@@ -87,21 +92,17 @@
             if (data && data.metin) {
                 document.getElementById('vakaMetin').innerText = data.metin;
                 
-                // Gerçek vaka geldiğinde (ilk açılış değilse ve bekliyor değilse)
+                // Gerçek vaka geldiğinde
                 if (!ilkAtlama && data.metin !== "Uygulama Başlatılıyor...") {
                     
-                    // Mevcut sesi sıfırla
                     ses.pause();
                     ses.currentTime = 0;
                     
-                    // 6 saniye döngüye sok
                     ses.loop = true;
                     ses.play().catch(e => console.log("Ses çalma hatası:", e));
                     
-                    // Titreşim desteği
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
 
-                    // 6 saniye sonra otomatik sustur
                     clearTimeout(vakaSesiZamanlayici);
                     vakaSesiZamanlayici = setTimeout(() => {
                         ses.loop = false;
