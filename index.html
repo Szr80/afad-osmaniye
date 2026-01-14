@@ -62,11 +62,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // SERVICE WORKER & BİLDİRİM KAYDI
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => {
-                console.log("Arka plan nöbetçisi aktif.");
-            });
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
         if (Notification.permission !== "granted") {
             Notification.requestPermission();
@@ -107,7 +104,6 @@
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
-                    // ÜST BİLDİRİMİ TETİKLE (ARKA PLAN İÇİN)
                     if (Notification.permission === "granted") {
                         navigator.serviceWorker.ready.then(reg => {
                             reg.showNotification('YENİ AFAD VAKASI!', {
@@ -130,18 +126,28 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
+                    
+                    // ALARMI ÇAL
                     ses.loop = true;
-                    ses.play();
+                    ses.currentTime = 0;
+                    ses.play().catch(e => console.log("Ses çalma hatası:", e));
+                    
                     onayBtn.style.display = 'block';
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
                     
                     clearTimeout(alarmSuresi);
-                    alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
+                    alarmSuresi = setTimeout(() => { 
+                        ses.loop = false; 
+                        ses.pause(); 
+                    }, 6000); // 6 saniye sonra otomatik durur
                 } else {
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     if (!gercekVakaMi) {
                         onayBtn.style.display = 'none';
                         vakaSayac.innerText = "";
+                        // Yeni vaka gelmediyse veya temizlendiyse sesi de kes
+                        ses.loop = false;
+                        ses.pause();
                     }
                 }
                 sonGelenMesaj = yeniMetin;
@@ -149,10 +155,18 @@
             }
         });
 
+        // BUTONA BASINCA SESİ KESEN BÖLÜM
         onayBtn.onclick = () => {
-            ses.loop = false;
-            ses.pause();
-            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
+            clearTimeout(alarmSuresi); // Otomatik durdurma sayacını iptal et
+            ses.loop = false;         // Döngüyü kapat
+            ses.pause();              // Sesi durdur
+            ses.currentTime = 0;      // Sesi başa sar
+            
+            set(ref(db, 'vakaDurum'), { 
+                durum: "OK", 
+                zaman: new Date().toLocaleTimeString(), 
+                tarih: new Date().toLocaleDateString('tr-TR') 
+            });
             onayBtn.style.display = 'none';
         };
     </script>
