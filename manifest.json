@@ -1,7 +1,7 @@
 {
-  "name": "OSMANİYE AFAD VAKA",
-  "short_name": "AFAD UÇ BİRİM",
-  "description": "Osmaniye AFAD Acil Vaka Bildirim Sistemi",
+  "name": "OSMANİYE AFAD",
+  "short_name": "AFAD 80",
+  "description": "AFAD Osmaniye Vaka Takip Sistemi",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -11,7 +11,8 @@
     {
       "src": "https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png",
