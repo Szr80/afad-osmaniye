@@ -91,6 +91,11 @@
         let alarmSuresi;
         let vakaGelisZamani = null;
 
+        // ÜST BİLDİRİM İZNİ İSTE
+        if ("Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
         document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
@@ -124,6 +129,14 @@
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
+                    // ÜST BİLDİRİM TETİKLEME
+                    if ("Notification" in window && Notification.permission === "granted") {
+                        new Notification("YENİ AFAD VAKASI!", {
+                            body: yeniMetin,
+                            requireInteraction: true
+                        });
+                    }
+
                     if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
                         const simdi = new Date();
                         vakaGecmisi.unshift({
@@ -145,7 +158,6 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
-                    
                     ses.loop = true;
                     ses.play().catch(e => console.log(e));
                     onayBtn.style.display = 'block';
@@ -162,7 +174,6 @@
                         vakaSayac.innerText = "";
                     }
                 }
-                
                 sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
             }
