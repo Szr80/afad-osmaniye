@@ -3,71 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <title>AFAD UÇ BİRİM</title>
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
+    
+    <title>AFAD VAKA UÇ BİRİM</title>
+
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; display: flex; flex-direction: column; margin: 0; }
-        #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; margin-top: 20px; }
-        .vaka-karti { margin: 20px; padding: 30px; border-radius: 20px; background: #1e293b; border-left: 12px solid #f97316; box-shadow: 0 15px 50px rgba(0,0,0,0.6); flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; }
-        #aktivasyon { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .btn-baslat { padding: 25px 50px; background: #f97316; color: white; border: none; border-radius: 60px; font-size: 1.5rem; font-weight: bold; }
+        body { 
+            background: #0f172a; color: white; font-family: 'Segoe UI', system-ui, sans-serif; 
+            text-align: center; height: 100vh; display: flex; flex-direction: column; 
+            margin: 0; overflow: hidden; justify-content: space-between;
+        }
+
+        /* Üst Bilgi Paneli */
+        .ust-panel { padding: 15px; background: #1e293b; border-bottom: 3px solid #f97316; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; line-height: 1; }
+        #tarih { font-size: 1rem; color: #94a3b8; margin-top: 5px; letter-spacing: 1px; }
+
+        /* Vaka Gösterge Alanı */
+        .vaka-alan { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .vaka-karti { 
+            background: #1e293b; width: 100%; max-width: 600px; padding: 30px; 
+            border-radius: 25px; border-left: 12px solid #f97316; text-align: left;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative;
+        }
+        .vaka-etiket { font-size: 0.85rem; color: #f97316; font-weight: 800; letter-spacing: 2.5px; margin-bottom: 15px; display: flex; align-items: center; }
+        .vaka-etiket::before { content: ""; width: 10px; height: 10px; background: #f97316; border-radius: 50%; margin-right: 10px; animation: blink 1s infinite; }
+        #vakaMetin { font-size: 1.7rem; color: #ffffff; font-weight: 600; line-height: 1.4; word-wrap: break-word; }
+
+        /* Alt Kurumsal Bilgi */
+        .alt-birim { padding-bottom: 30px; opacity: 0.6; }
+        .afad-logo-small { width: 60px; margin-bottom: 10px; }
+
+        /* İlk Giriş Kaplaması */
+        #aktivasyon { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #0f172a; z-index: 10000; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; 
+        }
+        .baslat-btn { 
+            padding: 22px 45px; background: #f97316; color: white; border: none; 
+            border-radius: 50px; font-size: 1.4rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4);
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
-<body onclick="sistemiBaslat()">
+<body onclick="sistemiAktifEt()">
 
     <div id="aktivasyon">
-        <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="120">
-        <h1 style="margin:20px 0;">AFAD UÇ BİRİM</h1>
-        <button class="btn-baslat">SİSTEMİ AKTİF ET</button>
-        <p style="color:#94a3b8; margin-top:20px;">Arka Plan Bildirimleri İçin Dokunun</p>
+        <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="140" style="margin-bottom: 30px;">
+        <button class="baslat-btn">SİSTEMİ BAŞLAT</button>
+        <p style="color: #64748b; margin-top: 20px;">OSMANİYE AFAD VAKA TAKİP</p>
     </div>
 
-    <div id="saat">00:00:00</div>
-    <div class="vaka-karti">
-        <div style="color:#f97316; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;">● AKTİF VAKA</div>
-        <div id="vakaMetin">VAKA BEKLENİYOR...</div>
+    <div class="ust-panel">
+        <div id="saat">00:00:00</div>
+        <div id="tarih">Yükleniyor...</div>
     </div>
 
-    <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+    <div class="vaka-alan">
+        <div class="vaka-karti">
+            <div class="vaka-etiket">GELEN VAKA BİLGİSİ</div>
+            <div id="vakaMetin">KOMUTA MERKEZİNDEN HABER BEKLENİYOR...</div>
+        </div>
+    </div>
+
+    <div class="alt-birim">
+        <img class="afad-logo-small" src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
+        <div style="font-size: 0.8rem; letter-spacing: 1px;">OSMANİYE AFAD EKİP UÇ BİRİM</div>
+    </div>
+
+    <audio id="vakaSesi" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, goOnline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        const firebaseConfig = {
+            databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const ses = document.getElementById('vakaSes');
+        const ses = document.getElementById('vakaSesi');
 
-        setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
-
-        // Service Worker Kaydı (Arka plan için şart)
+        // 1. Arka Plan Kaydı (Service Worker)
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
-                console.log("Arka plan bekçisi aktif.");
-            });
+            navigator.serviceWorker.register('./sw.js', { scope: './' })
+            .then(reg => console.log("Arka plan sistemi devrede."));
         }
 
-        window.sistemiBaslat = () => {
+        // 2. Saat/Tarih Güncelleme
+        function zamanGuncelle() {
+            const simdi = new Date();
+            document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
+            document.getElementById('tarih').innerText = simdi.toLocaleDateString('tr-TR', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            }).toUpperCase();
+        }
+        setInterval(zamanGuncelle, 1000);
+        zamanGuncelle();
+
+        // 3. Aktivasyon ve İzinler
+        window.sistemiAktifEt = () => {
             document.getElementById('aktivasyon').style.display = 'none';
-            if ("Notification" in window) { 
-                Notification.requestPermission(); 
+            
+            if ("Notification" in window) {
+                Notification.requestPermission().then(p => {
+                    if(p === "granted") console.log("Bildirim izni tamam.");
+                });
             }
+            // Tarayıcı ses kilidini aç
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
         };
 
-        let ilk = true;
-        onValue(ref(db, 'ortakKanal'), (snapshot) => {
+        // 4. Bağlantı Tazeleme (Ekran açıldığında)
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") goOnline(db);
+        });
+
+        // 5. Firebase Vaka Dinleme
+        let ilkMesajAtla = true;
+        const vakaRef = ref(db, 'ortakKanal');
+        onValue(vakaRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
                 document.getElementById('vakaMetin').innerText = data.metin;
-                if (!ilk && data.metin !== "VAKA BEKLENİYOR...") {
+                
+                // Eğer vaka "BEKLENİYOR" değilse ve yeni gelmişse uyar
+                if (!ilkMesajAtla && data.metin !== "KOMUTA MERKEZİNDEN HABER BEKLENİYOR...") {
+                    // Ses çal ve Titre (Ekranda açıksa)
                     ses.play().catch(() => {});
-                    if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+                    if (navigator.vibrate) navigator.vibrate([600, 200, 600, 200, 600]);
+
+                    // Üst Bildirim Gönder (Tarayıcı destekliyorsa)
+                    if (Notification.permission === "granted") {
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification('🚨 1 YENİ VAKA VAR!', {
+                                body: data.metin,
+                                icon: 'https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png',
+                                vibrate: [500, 200, 500],
+                                tag: 'afad-vaka-ihbar',
+                                renotify: true,
+                                requireInteraction: true
+                            });
+                        });
+                    }
                 }
-                ilk = false;
+                ilkMesajAtla = false;
             }
         });
     </script>
