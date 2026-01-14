@@ -3,44 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    
-    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
-    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
-    
     <link rel="manifest" href="manifest.json">
     <title>OSMANİYE AFAD</title>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .ust-panel { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; }
-        .vaka-alani { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 25px; }
-        .kutu { background: #1e293b; padding: 35px; border-radius: 20px; border-left: 10px solid #f97316; width: 100%; text-align: left; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; }
+        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 4px solid #f97316; }
+        #saat { font-size: 3rem; color: #f97316; font-weight: bold; }
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; gap: 15px; overflow-y: auto; }
+        .kutu { background: #1e293b; padding: 25px; border-radius: 15px; border-left: 8px solid #f97316; width: 90%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #vakaMetin { font-size: 1.6rem; font-weight: bold; line-height: 1.3; }
+        
+        /* Onay Butonu */
+        .btn-onay { display: none; padding: 18px; background: #22c55e; color: white; border: none; border-radius: 12px; font-size: 1.4rem; font-weight: bold; cursor: pointer; width: 90%; margin-top: 10px; }
+        
+        /* Vaka Geçmişi Tasarımı */
+        .gecmis-panel { width: 90%; text-align: left; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; }
+        .gecmis-baslik { color: #64748b; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+        .gecmis-item { background: #1e293b; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; font-size: 0.95rem; border-left: 4px solid #475569; color: #cbd5e1; }
+
         #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-baslat { padding: 22px 50px; background: #f97316; color: white; border: none; border-radius: 60px; font-size: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 25px rgba(249,115,22,0.4); }
+        .btn-baslat { padding: 20px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 style="margin-bottom: 30px; font-size: 2.5rem;">OSMANİYE AFAD</h1>
+        <h1>OSMANİYE AFAD</h1>
         <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT</button>
-        <p style="color:#64748b; margin-top:20px;">Sesli Uyarı ve Uygulama Modu İçin</p>
     </div>
 
     <div class="ust-panel">
         <div id="saat">00:00:00</div>
-        <div style="color:#38bdf8; font-weight:bold; margin-top:5px; letter-spacing:1px;">OSMANİYE AFAD UÇ BİRİM SİSTEMİ</div>
+        <div style="color:#38bdf8; font-weight:bold; font-size: 0.9rem;">UÇ BİRİM SİSTEMİ</div>
     </div>
 
     <div class="vaka-alani">
         <div class="kutu">
-            <div style="color:#f97316; font-size:0.8rem; font-weight:800; margin-bottom:10px; letter-spacing:2px;">● AKTİF VAKA</div>
-            <div id="vakaMetin">Uygulama Başlatılıyor...</div>
+            <div style="color:#f97316; font-size:0.7rem; font-weight:800; margin-bottom:8px;">● AKTİF VAKA</div>
+            <div id="vakaMetin">Bekleniyor...</div>
+        </div>
+
+        <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
+
+        <div class="gecmis-panel">
+            <div class="gecmis-baslik">Son Vakalar</div>
+            <div id="gecmisListe">
+                </div>
         </div>
     </div>
 
@@ -48,71 +58,67 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const ses = document.getElementById('vakaSes');
+        const onayBtn = document.getElementById('onayBtn');
+        const gecmisListe = document.getElementById('gecmisListe');
 
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
+        let vakaGecmisi = [];
 
-        document.getElementById('baslatBtn').onclick = async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-                deferredPrompt = null;
-            }
-            if ("Notification" in window) {
-                await Notification.requestPermission();
-            }
+        document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
-            // İlk etkileşimde sesi aktive et
-            ses.play().then(() => { ses.pause(); ses.currentTime = 0; }).catch(e => console.log(e));
+            ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
         };
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
-        }
-
-        // Saat güncelleme
-        setInterval(() => { 
-            document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); 
-        }, 1000);
+        setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
 
         let ilkAtlama = true;
-        let vakaSesiZamanlayici;
+        let alarmSuresi;
 
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
-                document.getElementById('vakaMetin').innerText = data.metin;
-                
-                // Gerçek vaka geldiğinde
-                if (!ilkAtlama && data.metin !== "Uygulama Başlatılıyor...") {
-                    
-                    ses.pause();
-                    ses.currentTime = 0;
-                    
-                    ses.loop = true;
-                    ses.play().catch(e => console.log("Ses çalma hatası:", e));
-                    
-                    if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+                const yeniMetin = data.metin;
+                const eskiMetin = document.getElementById('vakaMetin').innerText;
 
-                    clearTimeout(vakaSesiZamanlayici);
-                    vakaSesiZamanlayici = setTimeout(() => {
-                        ses.loop = false;
-                        ses.pause();
-                        ses.currentTime = 0;
-                    }, 6000); 
+                // Yeni vaka geldiğinde (ve metin değiştiğinde)
+                if (!ilkAtlama && yeniMetin !== eskiMetin && yeniMetin !== "KOMUTA BEKLENİYOR...") {
+                    
+                    // Geçmişe Ekle (Eski metni listeye at)
+                    if(eskiMetin !== "Bekleniyor...") {
+                        vakaGecmisi.unshift(eskiMetin);
+                        if(vakaGecmisi.length > 3) vakaGecmisi.pop();
+                        gecmisListe.innerHTML = vakaGecmisi.map(m => `<div class="gecmis-item">${m}</div>`).join('');
+                    }
+
+                    document.getElementById('vakaMetin').innerText = yeniMetin;
+                    
+                    // Alarm Başlat
+                    ses.loop = true;
+                    ses.play();
+                    onayBtn.style.display = 'block';
+
+                    // 6 saniye sonra otomatik sesi durdur
+                    clearTimeout(alarmSuresi);
+                    alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
+                } else {
+                    document.getElementById('vakaMetin').innerText = yeniMetin;
                 }
                 ilkAtlama = false;
             }
         });
+
+        onayBtn.onclick = () => {
+            ses.loop = false;
+            ses.pause();
+            ses.currentTime = 0;
+            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString() });
+            onayBtn.style.display = 'none';
+        };
     </script>
 </body>
 </html>
