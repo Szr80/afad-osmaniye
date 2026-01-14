@@ -80,15 +80,13 @@
                 const yeniMetin = data.metin.trim();
                 const ekrandakiMetin = document.getElementById('vakaMetin').innerText;
 
-                // 1. ŞART: İlk açılış değilse
-                // 2. ŞART: Mesaj gerçekten değişmişse
-                // 3. ŞART: Mesaj "BEKLENİYOR" veya boş değilse
-                const vakaVarMi = !yeniMetin.includes("BEKLENİYOR") && yeniMetin !== "";
+                // "BEKLENİYOR" içermeyen mesaj gerçek vakadır
+                const gercekVakaMi = !yeniMetin.includes("BEKLENİYOR") && yeniMetin !== "";
 
-                if (!ilkAtlama && yeniMetin !== sonGelenMesaj && vakaVarMi) {
+                if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
-                    // Eski vaka mesajını (eğer vaka ise) geçmişe at
-                    if (ekrandakiMetin !== "KOMUTA BEKLENİYOR..." && ekrandakiMetin !== "") {
+                    // Sadece ekrandaki mesaj gerçek bir vakaysa geçmişe at
+                    if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
                         vakaGecmisi.unshift(ekrandakiMetin);
                         if(vakaGecmisi.length > 3) vakaGecmisi.pop();
                         gecmisListe.innerHTML = vakaGecmisi.map(m => `<div class="gecmis-item">${m}</div>`).join('');
@@ -96,9 +94,8 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     
-                    // Alarm Çal
                     ses.loop = true;
-                    ses.play().catch(e => console.log("Ses hatası:", e));
+                    ses.play().catch(e => console.log(e));
                     onayBtn.style.display = 'block';
 
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
@@ -106,8 +103,9 @@
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                 } else {
-                    // Sadece metni güncelle, alarm çalma
+                    // "BEKLENİYOR" mesajı geldiyse sadece metni güncelle, alarm çalma, geçmişe ekleme
                     document.getElementById('vakaMetin').innerText = yeniMetin;
+                    if (!gercekVakaMi) onayBtn.style.display = 'none';
                 }
                 
                 sonGelenMesaj = yeniMetin;
