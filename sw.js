@@ -1,17 +1,23 @@
-// sw.js - Arka Plan Bildirim Motoru
+// sw.js
 self.addEventListener('push', function(event) {
-    const data = event.data ? event.data.text() : 'Yeni AFAD Vakası Alındı!';
+    const title = 'YENİ AFAD VAKASI!';
     const options = {
-        body: data,
+        body: event.data ? event.data.text() : 'Acil vaka kaydı düşmüştür.',
         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
         badge: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-        vibrate: [500, 200, 500],
-        requireInteraction: true // Kullanıcı tıklayana kadar bildirim ekranda kalır
+        vibrate: [500, 200, 500, 200, 500], // Titreşimle destekle
+        requireInteraction: true, // Kullanıcı kapatana kadar ekranda kalır
+        tag: 'afad-vaka' // Bildirimlerin üst üste binmesini engeller
     };
-    event.waitUntil(self.registration.showNotification('OSMANİYE AFAD', options));
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
 });
 
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
-    event.waitUntil(clients.openWindow('/')); // Bildirime tıklayınca uygulamayı açar
+    event.waitUntil(
+        clients.openWindow('/') // Bildirime tıklayınca uygulamayı açar
+    );
 });
