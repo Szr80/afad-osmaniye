@@ -1,7 +1,7 @@
 {
   "name": "AFAD VAKA SİSTEMİ",
   "short_name": "VAKA 80",
-  "description": "AFAD Osmaniye Vaka Takip Sistemi",
+  "description": "AFAD Osmaniye Acil Vaka Sistemi",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0f172a",
