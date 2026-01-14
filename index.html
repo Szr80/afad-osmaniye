@@ -12,46 +12,34 @@
         .ust-panel { background: #1e293b; padding: 12px; border-bottom: 4px solid #f97316; position: relative; }
         #saat { font-size: 2.8rem; color: #f97316; font-weight: bold; line-height: 1; }
         #tarih-ust { font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; }
-        
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.7rem; font-weight: bold; margin-top: 5px; }
         #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .offline #statusDot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
-
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 15px; gap: 12px; overflow-y: auto; }
         .kutu { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 8px solid #f97316; width: 92%; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.5); position: relative; }
         #vakaMetin { font-size: 1.4rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
         #vakaSayac { font-size: 0.65rem; color: #94a3b8; }
-
         .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; width: 92%; margin-top: 5px; }
-        
         .gecmis-panel { width: 92%; text-align: left; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; padding-bottom: 50px; }
         .gecmis-baslik { color: #64748b; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .gecmis-item { background: #1e293b; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid #475569; color: #cbd5e1; }
         .gecmis-alt { display: flex; justify-content: space-between; font-size: 0.65rem; color: #64748b; margin-top: 4px; border-top: 1px solid #2d3748; padding-top: 3px; }
-        
         .yapimci { position: fixed; bottom: 5px; width: 100%; font-size: 0.6rem; color: #334155; letter-spacing: 1.5px; font-weight: bold; pointer-events: none; text-transform: uppercase; z-index: 100; }
-        
         #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn-baslat { padding: 18px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body id="bodyTag">
-
     <div id="overlay">
-        <h1 style="letter-spacing: 2px; margin-bottom: 20px;">OSMANİYE AFAD</h1>
+        <h1 style="letter-spacing: 2px;">OSMANİYE AFAD</h1>
         <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT</button>
         <div style="margin-top: 25px; color: #334155; font-size: 0.65rem;">YAZILIM: SEZER ÇALT</div>
     </div>
-
     <div class="ust-panel">
         <div id="tarih-ust">--/--/----</div>
         <div id="saat">00:00:00</div>
-        <div class="status-bar">
-            <div id="statusDot"></div>
-            <span id="statusText">SİSTEM ÇEVRİMİÇİ</span>
-        </div>
+        <div class="status-bar"><div id="statusDot"></div><span id="statusText">SİSTEM ÇEVRİMİÇİ</span></div>
     </div>
-
     <div class="vaka-alani">
         <div class="kutu">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -60,17 +48,10 @@
             </div>
             <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
         </div>
-
         <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
-
-        <div class="gecmis-panel">
-            <div class="gecmis-baslik">Son 5 Vaka Geçmişi</div>
-            <div id="gecmisListe"></div>
-        </div>
+        <div class="gecmis-panel"><div class="gecmis-baslik">Son 5 Vaka Geçmişi</div><div id="gecmisListe"></div></div>
     </div>
-
     <div class="yapimci">Yazılım: Sezer ÇALT</div>
-
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script type="module">
@@ -80,6 +61,17 @@
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        // SERVICE WORKER & BİLDİRİM KAYDI
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log("Arka plan nöbetçisi aktif.");
+            });
+        }
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
         const ses = document.getElementById('vakaSes');
         const onayBtn = document.getElementById('onayBtn');
         const gecmisListe = document.getElementById('gecmisListe');
@@ -91,16 +83,6 @@
         let alarmSuresi;
         let vakaGelisZamani = null;
 
-        // Arka Plan Bildirim Motorunu Kaydet (sw.js dosyan varsa çalışır)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
-
-        // Üst Bildirim İzni İste
-        if ("Notification" in window && Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-
         document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
@@ -110,15 +92,6 @@
             const simdi = new Date();
             document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
             document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR');
-            
-            if(navigator.onLine) {
-                document.getElementById('bodyTag').classList.remove('offline');
-                document.getElementById('statusText').innerText = "SİSTEM ÇEVRİMİÇİ";
-            } else {
-                document.getElementById('bodyTag').classList.add('offline');
-                document.getElementById('statusText').innerText = "BAĞLANTI KESİLDİ!";
-            }
-
             if (vakaGelisZamani) {
                 const fark = Math.floor((new Date() - vakaGelisZamani) / 60000);
                 vakaSayac.innerText = fark > 0 ? fark + " dk önce" : "Az önce";
@@ -134,47 +107,40 @@
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
-                    // Üst Bildirim Gönder (Görseli Bozmadan Arka Planda Çalışır)
-                    if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("YENİ AFAD VAKASI!", {
-                            body: yeniMetin,
-                            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                            requireInteraction: true
+                    // ÜST BİLDİRİMİ TETİKLE (ARKA PLAN İÇİN)
+                    if (Notification.permission === "granted") {
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification('YENİ AFAD VAKASI!', {
+                                body: yeniMetin,
+                                icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
+                                requireInteraction: true
+                            });
                         });
                     }
 
                     if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
-                        const simdi = new Date();
                         vakaGecmisi.unshift({
                             metin: ekrandakiMetin, 
-                            saat: simdi.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                            tarih: simdi.toLocaleDateString('tr-TR') 
+                            saat: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
+                            tarih: new Date().toLocaleDateString('tr-TR') 
                         });
                         if(vakaGecmisi.length > 5) vakaGecmisi.pop();
-                        gecmisListe.innerHTML = vakaGecmisi.map(v => `
-                            <div class="gecmis-item">
-                                <span>${v.metin}</span>
-                                <div class="gecmis-alt">
-                                    <span>📅 ${v.tarih}</span>
-                                    <span>⏰ ${v.saat}</span>
-                                </div>
-                            </div>
-                        `).join('');
+                        gecmisListe.innerHTML = vakaGecmisi.map(v => `<div class="gecmis-item"><span>${v.metin}</span><div class="gecmis-alt"><span>📅 ${v.tarih}</span><span>⏰ ${v.saat}</span></div></div>`).join('');
                     }
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
                     ses.loop = true;
-                    ses.play().catch(e => console.log(e));
+                    ses.play();
                     onayBtn.style.display = 'block';
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+                    
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                 } else {
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     if (!gercekVakaMi) {
                         onayBtn.style.display = 'none';
-                        vakaGelisZamani = null;
                         vakaSayac.innerText = "";
                     }
                 }
@@ -186,12 +152,7 @@
         onayBtn.onclick = () => {
             ses.loop = false;
             ses.pause();
-            ses.currentTime = 0;
-            set(ref(db, 'vakaDurum'), { 
-                durum: "OK", 
-                zaman: new Date().toLocaleTimeString(), 
-                tarih: new Date().toLocaleDateString('tr-TR') 
-            });
+            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
             onayBtn.style.display = 'none';
         };
     </script>
