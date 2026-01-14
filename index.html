@@ -3,38 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
-    
-    <title>AFAD UÇ BİRİM</title>
+    <title>AFAD VAKA SİSTEMİ</title>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; }
-        .ust { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .ust { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; }
-        .kart { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .kutu { background: #1e293b; padding: 30px; border-radius: 20px; border-left: 10px solid #f97316; width: 100%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #vakaMetin { font-size: 1.8rem; font-weight: bold; }
+        .vaka-alani { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .kutu { background: #1e293b; padding: 30px; border-radius: 20px; border-left: 10px solid #f97316; text-align: left; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; }
         #giris { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn { padding: 25px 50px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
+        .btn { padding: 22px 45px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.4rem; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(249,115,22,0.4); }
     </style>
 </head>
 <body>
 
     <div id="giris">
         <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="120">
-        <h1 style="margin: 20px 0;">AFAD VAKA SİSTEMİ</h1>
-        <button class="btn" id="installBtn">SİSTEMİ BAŞLAT</button>
-        <p style="color: #64748b; margin-top: 20px;">Uygulama Olarak Kullanmak İçin Basın</p>
+        <h2 style="margin: 25px 0;">AFAD UÇ BİRİM</h2>
+        <button class="btn" id="baslatBtn">SİSTEMİ BAŞLAT</button>
+        <p style="color:#64748b; margin-top:20px;">Uygulama Olarak Kullan ve Bildirimleri Aç</p>
     </div>
 
     <div class="ust"><div id="saat">00:00:00</div></div>
-    <div class="kart"><div class="kutu"><div id="vakaMetin">BEKLENİYOR...</div></div></div>
+    <div class="vaka-alani"><div class="kutu"><div id="vakaMetin">KOMUTA BEKLENİYOR...</div></div></div>
 
-    <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+    <audio id="vakaSesi" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -43,44 +39,47 @@
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const ses = document.getElementById('vakaSes');
-        const installBtn = document.getElementById('installBtn');
+        const ses = document.getElementById('vakaSesi');
 
-        // PWA Tetikleyici
+        // PWA Kurulum Yönetimi
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
         });
 
-        window.sistemiAktifEt = async () => {
+        document.getElementById('baslatBtn').addEventListener('click', async () => {
+            // Butona basıldığında yükleme sorusunu zorla
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 await deferredPrompt.userChoice;
                 deferredPrompt = null;
             }
+            
             document.getElementById('giris').style.display = 'none';
             if ("Notification" in window) { Notification.requestPermission(); }
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
-        };
+        });
 
-        installBtn.addEventListener('click', sistemiAktifEt);
-
+        // Service Worker Kaydı
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js', { scope: './' });
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                console.log('Bekçi hazır.');
+            });
         }
 
         setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
 
-        let ilk = true;
+        let ilkAtla = true;
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
                 document.getElementById('vakaMetin').innerText = data.metin;
-                if (!ilk && data.metin !== "BEKLENİYOR...") {
+                if (!ilkAtla && data.metin !== "KOMUTA BEKLENİYOR...") {
                     ses.play().catch(() => {});
+                    if (navigator.vibrate) navigator.vibrate([600, 200, 600]);
                 }
-                ilk = false;
+                ilkAtla = false;
             }
         });
     </script>
