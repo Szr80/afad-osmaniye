@@ -18,7 +18,7 @@
         .kutu { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 8px solid #f97316; width: 92%; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.4rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
         #vakaSayac { font-size: 0.65rem; color: #94a3b8; }
-        .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; width: 92%; margin-top: 5px; cursor: pointer; }
+        .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; width: 92%; margin-top: 5px; cursor: pointer; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
         .gecmis-panel { width: 92%; text-align: left; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; padding-bottom: 50px; }
         .gecmis-baslik { color: #64748b; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
         .gecmis-item { background: #1e293b; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid #475569; color: #cbd5e1; }
@@ -32,14 +32,14 @@
 
     <div id="overlay">
         <h1 style="letter-spacing: 2px;">OSMANİYE AFAD</h1>
-        <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT</button>
+        <button class="btn-baslat" id="baslatBtn">OTOMATİK MODU AÇ</button>
         <div style="margin-top: 25px; color: #334155; font-size: 0.65rem;">YAZILIM: SEZER ÇALT</div>
     </div>
 
     <div class="ust-panel">
         <div id="tarih-ust">--/--/----</div>
         <div id="saat">00:00:00</div>
-        <div class="status-bar"><div id="statusDot"></div><span id="statusText">BAĞLANIYOR...</span></div>
+        <div class="status-bar"><div id="statusDot"></div><span id="statusText">SİSTEM HAZIR</span></div>
     </div>
 
     <div class="vaka-alani">
@@ -76,7 +76,7 @@
         let alarmSuresi;
         let vakaGelisZamani = null;
 
-        // EKALNI CANLI TUTMA (WAKE LOCK)
+        // EKRANI CANLI TUTMA
         let wakeLock = null;
         const requestWakeLock = async () => {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
@@ -104,9 +104,8 @@
         });
 
         setInterval(() => {
-            const simdi = new Date();
-            document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
-            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR');
+            document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR');
+            document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
             if (vakaGelisZamani) {
                 const fark = Math.floor((new Date() - vakaGelisZamani) / 60000);
                 document.getElementById('vakaSayac').innerText = fark > 0 ? fark + " dk önce" : "Az önce";
@@ -121,10 +120,10 @@
                 const gercekVakaMi = !yeniMetin.includes("BEKLENİYOR") && yeniMetin !== "";
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
-                    // Üst Bildirimi Zorla
+                    // OTOMATİK BİLDİRİM VE SES
                     if (Notification.permission === "granted") {
                         navigator.serviceWorker.ready.then(reg => {
-                            reg.showNotification('YENİ AFAD VAKASI!', { body: yeniMetin, requireInteraction: true });
+                            reg.showNotification('🚨 YENİ AFAD VAKASI!', { body: yeniMetin, requireInteraction: true });
                         });
                     }
 
@@ -137,18 +136,22 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
-                    ses.currentTime = 0; ses.loop = true; ses.play();
+                    
+                    // Ses Çalma Zorlaması
+                    ses.currentTime = 0; ses.loop = true; 
+                    ses.play().catch(() => {
+                        console.log("Ses için etkileşim gerekiyor.");
+                    });
+
                     onayBtn.style.display = 'block';
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
                     
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
-                } else {
+                } else if (!gercekVakaMi) {
                     document.getElementById('vakaMetin').innerText = yeniMetin;
-                    if (!gercekVakaMi) {
-                        onayBtn.style.display = 'none';
-                        ses.pause();
-                    }
+                    onayBtn.style.display = 'none';
+                    ses.pause();
                 }
                 sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
@@ -158,11 +161,10 @@
         onayBtn.onclick = () => {
             clearTimeout(alarmSuresi);
             ses.loop = false; ses.pause(); ses.currentTime = 0;
-            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString() });
+            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
             onayBtn.style.display = 'none';
         };
 
-        // Uygulama öne gelince uyku kilidini tazele
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') requestWakeLock();
         });
