@@ -1,8 +1,8 @@
 {
-  "name": "OSMANİYE AFAD",
+  "name": "OSMANİYE AFAD VAKA",
   "short_name": "AFAD 80",
-  "description": "AFAD Osmaniye Vaka Takip Sistemi",
-  "start_url": "./index.html",
+  "description": "Osmaniye AFAD Acil Vaka Bildirim Sistemi",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
