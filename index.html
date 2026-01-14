@@ -91,6 +91,11 @@
         let alarmSuresi;
         let vakaGelisZamani = null;
 
+        // BİLDİRİM İZNİ İSTE
+        if (Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+
         document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
@@ -99,7 +104,6 @@
         setInterval(() => { 
             const simdi = new Date();
             document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
-            // ÜST PANEL TAM TARİH
             document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR');
             
             if(navigator.onLine) {
@@ -125,17 +129,23 @@
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
+                    // ANLIK BİLDİRİM GÖNDER (ARKA PLAN İÇİN)
+                    if (Notification.permission === "granted") {
+                        new Notification("YENİ AFAD VAKASI!", {
+                            body: yeniMetin,
+                            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
+                            requireInteraction: true
+                        });
+                    }
+
                     if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
                         const simdi = new Date();
                         vakaGecmisi.unshift({
                             metin: ekrandakiMetin, 
                             saat: simdi.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                            // GEÇMİŞ LİSTESİ TAM TARİH (YIL DAHİL)
                             tarih: simdi.toLocaleDateString('tr-TR') 
                         });
-                        
                         if(vakaGecmisi.length > 5) vakaGecmisi.pop();
-                        
                         gecmisListe.innerHTML = vakaGecmisi.map(v => `
                             <div class="gecmis-item">
                                 <span>${v.metin}</span>
