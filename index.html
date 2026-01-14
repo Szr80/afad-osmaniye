@@ -91,11 +91,6 @@
         let alarmSuresi;
         let vakaGelisZamani = null;
 
-        // BİLDİRİM İZNİ İSTE
-        if (Notification.permission === "default") {
-            Notification.requestPermission();
-        }
-
         document.getElementById('baslatBtn').onclick = () => {
             document.getElementById('overlay').style.display = 'none';
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
@@ -129,15 +124,6 @@
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
-                    // ANLIK BİLDİRİM GÖNDER (ARKA PLAN İÇİN)
-                    if (Notification.permission === "granted") {
-                        new Notification("YENİ AFAD VAKASI!", {
-                            body: yeniMetin,
-                            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                            requireInteraction: true
-                        });
-                    }
-
                     if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
                         const simdi = new Date();
                         vakaGecmisi.unshift({
@@ -159,10 +145,13 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
+                    
                     ses.loop = true;
                     ses.play().catch(e => console.log(e));
                     onayBtn.style.display = 'block';
+
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                 } else {
@@ -173,6 +162,7 @@
                         vakaSayac.innerText = "";
                     }
                 }
+                
                 sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
             }
