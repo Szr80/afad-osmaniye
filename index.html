@@ -9,41 +9,42 @@
     <title>OSMANİYE AFAD</title>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 4px solid #f97316; position: relative; }
-        #saat { font-size: 3rem; color: #f97316; font-weight: bold; }
+        .ust-panel { background: #1e293b; padding: 12px; border-bottom: 4px solid #f97316; position: relative; }
+        #saat { font-size: 2.8rem; color: #f97316; font-weight: bold; line-height: 1; }
+        #tarih-ust { font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; }
         
-        /* Bağlantı Durumu Işığı */
-        .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; }
-        #statusDot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-        .offline #statusDot { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.7rem; font-weight: bold; margin-top: 5px; }
+        #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .offline #statusDot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
-        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; gap: 15px; overflow-y: auto; }
-        .kutu { background: #1e293b; padding: 25px; border-radius: 15px; border-left: 8px solid #f97316; width: 90%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-        #vakaMetin { font-size: 1.6rem; font-weight: bold; line-height: 1.3; margin-top: 10px; }
-        
-        /* Vaka Süresi Sayacı */
-        #vakaSayac { font-size: 0.7rem; color: #94a3b8; font-weight: normal; }
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 15px; gap: 12px; overflow-y: auto; }
+        .kutu { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 8px solid #f97316; width: 92%; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.5); position: relative; }
+        #vakaMetin { font-size: 1.4rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
+        #vakaSayac { font-size: 0.65rem; color: #94a3b8; }
 
-        .btn-onay { display: none; padding: 18px; background: #22c55e; color: white; border: none; border-radius: 12px; font-size: 1.4rem; font-weight: bold; cursor: pointer; width: 90%; margin-top: 10px; }
-        .gecmis-panel { width: 90%; text-align: left; margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px; padding-bottom: 50px; }
-        .gecmis-baslik { color: #64748b; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
-        .gecmis-item { background: #1e293b; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; border-left: 4px solid #475569; color: #cbd5e1; display: flex; justify-content: space-between; }
+        .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; width: 92%; margin-top: 5px; }
         
-        .yapimci { position: fixed; bottom: 8px; width: 100%; font-size: 0.65rem; color: #334155; letter-spacing: 1.5px; font-weight: bold; pointer-events: none; text-transform: uppercase; }
+        .gecmis-panel { width: 92%; text-align: left; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; padding-bottom: 50px; }
+        .gecmis-baslik { color: #64748b; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .gecmis-item { background: #1e293b; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid #475569; color: #cbd5e1; }
+        .gecmis-alt { display: flex; justify-content: space-between; font-size: 0.65rem; color: #64748b; margin-top: 4px; border-top: 1px solid #2d3748; padding-top: 3px; }
+        
+        .yapimci { position: fixed; bottom: 5px; width: 100%; font-size: 0.6rem; color: #334155; letter-spacing: 1.5px; font-weight: bold; pointer-events: none; text-transform: uppercase; z-index: 100; }
         
         #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-baslat { padding: 20px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
+        .btn-baslat { padding: 18px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body id="bodyTag">
 
     <div id="overlay">
-        <h1 style="letter-spacing: 2px;">OSMANİYE AFAD</h1>
+        <h1 style="letter-spacing: 2px; margin-bottom: 20px;">OSMANİYE AFAD</h1>
         <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT</button>
-        <div style="margin-top: 20px; color: #334155; font-size: 0.7rem;">YAZILIM: SEZER ÇALT</div>
+        <div style="margin-top: 25px; color: #334155; font-size: 0.65rem;">YAZILIM: SEZER ÇALT</div>
     </div>
 
     <div class="ust-panel">
+        <div id="tarih-ust">--/--/----</div>
         <div id="saat">00:00:00</div>
         <div class="status-bar">
             <div id="statusDot"></div>
@@ -54,7 +55,7 @@
     <div class="vaka-alani">
         <div class="kutu">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="color:#f97316; font-size:0.7rem; font-weight:800;">● AKTİF VAKA</div>
+                <div style="color:#f97316; font-size:0.65rem; font-weight:800;">● AKTİF VAKA</div>
                 <div id="vakaSayac"></div>
             </div>
             <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
@@ -63,7 +64,7 @@
         <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
 
         <div class="gecmis-panel">
-            <div class="gecmis-baslik">Vaka Geçmişi</div>
+            <div class="gecmis-baslik">Son 5 Vaka Geçmişi</div>
             <div id="gecmisListe"></div>
         </div>
     </div>
@@ -95,11 +96,11 @@
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
         };
 
-        // Saat ve Bağlantı Kontrolü
         setInterval(() => { 
-            document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR');
+            const simdi = new Date();
+            document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
+            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
             
-            // İnternet Kontrolü
             if(navigator.onLine) {
                 document.getElementById('bodyTag').classList.remove('offline');
                 document.getElementById('statusText').innerText = "SİSTEM ÇEVRİMİÇİ";
@@ -108,7 +109,6 @@
                 document.getElementById('statusText').innerText = "BAĞLANTI KESİLDİ!";
             }
 
-            // Vaka Süresi Güncelleme
             if (vakaGelisZamani) {
                 const fark = Math.floor((new Date() - vakaGelisZamani) / 60000);
                 vakaSayac.innerText = fark > 0 ? fark + " dk önce" : "Az önce";
@@ -125,13 +125,29 @@
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
                     
                     if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
-                        vakaGecmisi.unshift({metin: ekrandakiMetin, saat: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})});
-                        if(vakaGecmisi.length > 3) vakaGecmisi.pop();
-                        gecmisListe.innerHTML = vakaGecmisi.map(v => `<div class="gecmis-item"><span>${v.metin}</span> <span style="color:#64748b">${v.saat}</span></div>`).join('');
+                        const simdi = new Date();
+                        vakaGecmisi.unshift({
+                            metin: ekrandakiMetin, 
+                            saat: simdi.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
+                            tarih: simdi.toLocaleDateString('tr-TR', {day: '2-digit', month: '2-digit'})
+                        });
+                        
+                        // LİSTE SINIRI: SON 5 VAKA
+                        if(vakaGecmisi.length > 5) vakaGecmisi.pop();
+                        
+                        gecmisListe.innerHTML = vakaGecmisi.map(v => `
+                            <div class="gecmis-item">
+                                <span>${v.metin}</span>
+                                <div class="gecmis-alt">
+                                    <span>📅 ${v.tarih}</span>
+                                    <span>⏰ ${v.saat}</span>
+                                </div>
+                            </div>
+                        `).join('');
                     }
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
-                    vakaGelisZamani = new Date(); // Süre sayacını başlat
+                    vakaGelisZamani = new Date();
                     
                     ses.loop = true;
                     ses.play().catch(e => console.log(e));
@@ -159,7 +175,7 @@
             ses.loop = false;
             ses.pause();
             ses.currentTime = 0;
-            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString() });
+            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
             onayBtn.style.display = 'none';
         };
     </script>
