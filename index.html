@@ -3,45 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AFAD VAKA">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0f172a">
+    
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
+    
     <title>AFAD VAKA UÇ BİRİM</title>
     <style>
         body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; height: 100vh; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
-        .ust-header { background: #1e293b; padding: 15px; border-bottom: 3px solid #f97316; }
+        .header { background: #1e293b; padding: 15px; border-bottom: 3px solid #f97316; }
         #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; }
-        .ana-ekran { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding: 20px; }
-        .vaka-karti { background: #1e293b; padding: 30px; border-radius: 25px; border-left: 12px solid #f97316; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
-        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; text-align: left; }
+        .vaka-karti { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding: 20px; }
+        .icerik { background: #1e293b; padding: 30px; border-radius: 25px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
+        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; color: #fff; }
         #aktivasyon { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .btn-baslat { padding: 25px 50px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.5rem; font-weight: bold; box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4); }
+        .btn { padding: 25px 50px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.5rem; font-weight: bold; box-shadow: 0 10px 30px rgba(249, 115, 22, 0.4); }
     </style>
 </head>
-<body onclick="sistemiAktifEt()">
+<body onclick="sistemiAc()">
 
     <div id="aktivasyon">
         <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="120">
-        <h1 style="margin:25px 0;">AFAD VAKA SİSTEMİ</h1>
-        <button class="btn-baslat">SİSTEMİ BAŞLAT</button>
-        <p style="color:#94a3b8; margin-top:20px;">Ses ve Arka Plan Bildirimleri İçin Dokunun</p>
+        <h1 style="margin:20px 0;">AFAD UÇ BİRİM</h1>
+        <button class="btn">SİSTEMİ BAŞLAT</button>
+        <p style="color:#94a3b8; margin-top:20px;">Uygulamayı Tam Kapasite Çalıştır</p>
     </div>
 
-    <div class="ust-header">
+    <div class="header">
         <div id="saat">00:00:00</div>
-        <div style="color: #38bdf8; font-weight: bold; letter-spacing: 1px; font-size: 0.8rem; margin-top: 5px;">OSMANİYE AFAD EKİP UÇ BİRİM</div>
+        <div style="color:#38bdf8; font-size:0.9rem; margin-top:5px; font-weight:bold;">OSMANİYE AFAD SAHA EKİBİ</div>
     </div>
 
-    <div class="ana-ekran">
-        <div class="vaka-karti">
-            <div style="color:#f97316; font-size:0.8rem; font-weight:800; margin-bottom:15px; letter-spacing:2px; text-align: left;">● GELEN VAKA BİLGİSİ</div>
+    <div class="vaka-karti">
+        <div class="icerik">
+            <div style="color:#f97316; font-size:0.8rem; font-weight:800; margin-bottom:10px;">● MERKEZDEN GELEN VAKA</div>
             <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
         </div>
     </div>
 
-    <audio id="vakaSesi" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+    <audio id="ses" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -50,15 +55,15 @@
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const ses = document.getElementById('vakaSesi');
+        const ses = document.getElementById('ses');
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(reg => console.log("SW Hazır."));
+            navigator.serviceWorker.register('./sw.js').then(reg => console.log("Arka Plan Servisi Hazır"));
         }
 
         setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
 
-        window.sistemiAktifEt = () => {
+        window.sistemiAc = () => {
             document.getElementById('aktivasyon').style.display = 'none';
             if ("Notification" in window) { Notification.requestPermission(); }
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
