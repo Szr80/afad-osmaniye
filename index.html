@@ -5,32 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <title>OSMANİYE AFAD</title>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .ust-panel { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .ust-panel { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; }
         #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; }
-        .vaka-alani { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .kutu { background: #1e293b; padding: 35px; border-radius: 20px; border-left: 10px solid #f97316; width: 100%; text-align: left; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .vaka-alani { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 25px; }
+        .kutu { background: #1e293b; padding: 35px; border-radius: 20px; border-left: 10px solid #f97316; width: 100%; text-align: left; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
         #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; }
-        /* Açılış Ekranı */
-        #giris { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn { padding: 22px 55px; background: #f97316; color: white; border: none; border-radius: 60px; font-size: 1.6rem; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(249,115,22,0.4); }
+        #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-baslat { padding: 22px 50px; background: #f97316; color: white; border: none; border-radius: 60px; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="giris">
-        <h1 style="margin-bottom: 30px; font-size: 2.5rem;">OSMANİYE AFAD</h1>
-        <button class="btn" id="kurulumBtn">SİSTEMİ BAŞLAT</button>
-        <p style="color:#64748b; margin-top:20px;">Uygulama Modu ve Ses İçin Dokunun</p>
+    <div id="overlay">
+        <h1 style="margin-bottom: 30px;">OSMANİYE AFAD</h1>
+        <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT</button>
+        <p style="color:#64748b; margin-top:20px;">Bildirim İzni ve Uygulama Modu İçin</p>
     </div>
 
     <div class="ust-panel">
         <div id="saat">00:00:00</div>
-        <div style="color:#38bdf8; font-weight:bold; margin-top:5px; letter-spacing:1px;">UÇ BİRİM SİSTEMİ</div>
+        <div style="color:#38bdf8; font-weight:bold; margin-top:5px;">UÇ BİRİM SİSTEMİ</div>
     </div>
 
     <div class="vaka-alani">
@@ -51,26 +49,30 @@
         const db = getDatabase(app);
         const ses = document.getElementById('vakaSes');
 
-        // PWA Kurulum Yönetimi
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
         });
 
-        document.getElementById('kurulumBtn').onclick = async () => {
+        document.getElementById('baslatBtn').onclick = async () => {
+            // PWA Kurulum
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 await deferredPrompt.userChoice;
                 deferredPrompt = null;
             }
-            document.getElementById('giris').style.display = 'none';
-            if ("Notification" in window) { Notification.requestPermission(); }
+            // Bildirim İzni
+            if ("Notification" in window) {
+                const permission = await Notification.requestPermission();
+                console.log("Bildirim durumu:", permission);
+            }
+            document.getElementById('overlay').style.display = 'none';
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
         };
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
+            navigator.serviceWorker.register('./sw.js').then(r => console.log("Servis Aktif"));
         }
 
         setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
