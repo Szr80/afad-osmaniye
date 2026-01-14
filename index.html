@@ -99,7 +99,8 @@
         setInterval(() => { 
             const simdi = new Date();
             document.getElementById('saat').innerText = simdi.toLocaleTimeString('tr-TR');
-            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            // ÜST PANEL TAM TARİH
+            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR');
             
             if(navigator.onLine) {
                 document.getElementById('bodyTag').classList.remove('offline');
@@ -129,10 +130,10 @@
                         vakaGecmisi.unshift({
                             metin: ekrandakiMetin, 
                             saat: simdi.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                            tarih: simdi.toLocaleDateString('tr-TR', {day: '2-digit', month: '2-digit'})
+                            // GEÇMİŞ LİSTESİ TAM TARİH (YIL DAHİL)
+                            tarih: simdi.toLocaleDateString('tr-TR') 
                         });
                         
-                        // LİSTE SINIRI: SON 5 VAKA
                         if(vakaGecmisi.length > 5) vakaGecmisi.pop();
                         
                         gecmisListe.innerHTML = vakaGecmisi.map(v => `
@@ -148,13 +149,10 @@
 
                     document.getElementById('vakaMetin').innerText = yeniMetin;
                     vakaGelisZamani = new Date();
-                    
                     ses.loop = true;
                     ses.play().catch(e => console.log(e));
                     onayBtn.style.display = 'block';
-
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
-
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                 } else {
@@ -165,7 +163,6 @@
                         vakaSayac.innerText = "";
                     }
                 }
-                
                 sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
             }
@@ -175,7 +172,11 @@
             ses.loop = false;
             ses.pause();
             ses.currentTime = 0;
-            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
+            set(ref(db, 'vakaDurum'), { 
+                durum: "OK", 
+                zaman: new Date().toLocaleTimeString(), 
+                tarih: new Date().toLocaleDateString('tr-TR') 
+            });
             onayBtn.style.display = 'none';
         };
     </script>
