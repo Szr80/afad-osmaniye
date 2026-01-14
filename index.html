@@ -5,41 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png">
     <title>OSMANİYE AFAD</title>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        #saat { font-size: 3.5rem; color: #f97316; font-weight: bold; }
-        .vaka-alani { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 25px; }
-        .vaka-karti { background: #1e293b; padding: 35px; border-radius: 25px; border-left: 12px solid #f97316; text-align: left; width: 100%; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
-        #vakaMetin { font-size: 1.8rem; font-weight: bold; line-height: 1.4; color: #ffffff; }
-        #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .btn-start { padding: 22px 55px; background: #f97316; color: white; border: none; border-radius: 60px; font-size: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 25px rgba(249,115,22,0.4); }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .ust { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; }
+        #saat { font-size: 3.2rem; color: #f97316; font-weight: bold; }
+        .vaka-alan { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .kutu { background: #1e293b; padding: 35px; border-radius: 20px; border-left: 10px solid #f97316; width: 100%; text-align: left; }
+        #vakaMetin { font-size: 1.8rem; font-weight: bold; }
+        #giris { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn { padding: 20px 45px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.4rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="130">
-        <h1 style="margin: 25px 0;">OSMANİYE AFAD</h1>
-        <button class="btn-start" id="startBtn">SİSTEMİ BAŞLAT</button>
-        <p style="color:#64748b; margin-top:15px;">Uygulama Modu ve Bildirimler İçin</p>
+    <div id="giris">
+        <img src="https://upload.wikimedia.org/wikipedia/tr/e/ee/Afet_ve_Acil_Durum_Y%C3%B6netimi_Ba%C5%9Fanl%C4%B1%C4%9F%C4%B1_logosu.png" width="120">
+        <h2 style="margin: 20px 0;">OSMANİYE AFAD</h2>
+        <button class="btn" id="startBtn">SİSTEMİ BAŞLAT</button>
     </div>
 
-    <div class="header">
-        <div id="saat">00:00:00</div>
-        <div style="color:#38bdf8; font-weight:bold; margin-top:5px; letter-spacing:1px;">OSMANİYE AFAD UÇ BİRİM</div>
-    </div>
-
-    <div class="vaka-alani">
-        <div class="vaka-karti">
-            <div style="color:#f97316; font-size:0.8rem; font-weight:800; margin-bottom:10px; letter-spacing:2px;">● AKTİF VAKA</div>
-            <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
-        </div>
-    </div>
+    <div class="ust"><div id="saat">00:00:00</div></div>
+    <div class="vaka-alan"><div class="kutu"><div id="vakaMetin">BEKLENİYOR...</div></div></div>
 
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
@@ -52,39 +40,41 @@
         const db = getDatabase(app);
         const ses = document.getElementById('vakaSes');
 
-        let deferredPrompt;
+        // PWA Kaydı
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+
+        // Yükleme Tetikleyici
+        let promptOlayi;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            deferredPrompt = e;
+            promptOlayi = e;
         });
 
-        document.getElementById('startBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-                deferredPrompt = null;
+        document.getElementById('startBtn').onclick = async () => {
+            if (promptOlayi) {
+                promptOlayi.prompt();
+                await promptOlayi.userChoice;
+                promptOlayi = null;
             }
-            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('giris').style.display = 'none';
             if ("Notification" in window) { Notification.requestPermission(); }
             ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
-        });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(() => console.log("Servis Aktif"));
-        }
+        };
 
         setInterval(() => { document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR'); }, 1000);
 
-        let isFirst = true;
+        let ilk = true;
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
                 document.getElementById('vakaMetin').innerText = data.metin;
-                if (!isFirst && data.metin !== "KOMUTA BEKLENİYOR...") {
+                if (!ilk && data.metin !== "BEKLENİYOR...") {
                     ses.play().catch(() => {});
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
                 }
-                isFirst = false;
+                ilk = false;
             }
         });
     </script>
