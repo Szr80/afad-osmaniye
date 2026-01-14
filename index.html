@@ -29,7 +29,7 @@
 
     <div class="ust-panel">
         <div id="saat">00:00:00</div>
-        <div style="color:#38bdf8; font-weight:bold; margin-top:5px; letter-spacing:1px;">UÇ BİRİM SİSTEMİ</div>
+        <div style="color:#38bdf8; font-weight:bold; margin-top:5px; letter-spacing:1px;">OSMANİYE AFAD UÇ BİRİM SİSTEMİ</div>
     </div>
 
     <div class="vaka-alani">
@@ -88,7 +88,7 @@
                 document.getElementById('vakaMetin').innerText = data.metin;
                 
                 // Gerçek vaka geldiğinde (ilk açılış değilse ve bekliyor değilse)
-                if (!ilkAtlama && data.metin !== "KOMUTA BEKLENİYOR...") {
+                if (!ilkAtlama && data.metin !== "Uygulama Başlatılıyor...") {
                     
                     // Mevcut sesi sıfırla
                     ses.pause();
