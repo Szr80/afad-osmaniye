@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AFAD | SAHA EKİP SİSTEMİ</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiI2Y5NzMxNiIKfQ==">
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: #0f172a; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
+        /* ÜST BAR */
         .ust-bar { background: #1e293b; padding: 15px; text-align: center; border-bottom: 3px solid #f97316; font-weight: 900; letter-spacing: 1px; }
+        
         .ana-alan { flex-grow: 1; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
 
         /* VAKA KARTI */
@@ -22,14 +23,12 @@
         .btn-yol { background: #3b82f6; }
         .btn-olay { background: #eab308; color: #000; }
         .btn-aktif { background: #22c55e; grid-column: span 2; }
-        .btn-sos { background: #dc2626; grid-column: span 2; padding: 25px; font-size: 1.5rem; animation: pulse 1.5s infinite; }
+        .btn-sos { background: #dc2626; grid-column: span 2; padding: 20px; font-size: 1.2rem; }
 
         /* TELSİZ ALANI */
-        .telsiz-alt { background: #1e293b; padding: 20px; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #334155; }
-        .mic-btn { width: 80px; height: 80px; border-radius: 50%; background: #f97316; border: 6px solid #334155; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
-        .mic-btn.active { background: #dc2626; transform: scale(0.9); box-shadow: 0 0 30px #dc2626; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .telsiz-alt { background: #1e293b; padding: 20px; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #334155; align-items: center; }
+        .mic-btn { width: 80px; height: 80px; border-radius: 50%; background: #f97316; border: 6px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+        .mic-btn.active { background: #dc2626; transform: scale(0.95); box-shadow: 0 0 30px #dc2626; }
     </style>
 </head>
 <body>
@@ -46,13 +45,13 @@
         <div class="durum-grid">
             <button class="btn btn-yol" onclick="durumGuncelle('YOLDAYIM')">YOLDAYIM</button>
             <button class="btn btn-olay" onclick="durumGuncelle('OLAY YERİNDE')">OLAY YERİNDE</button>
-            <button class="btn btn-aktif" onclick="durumGuncelle('AKTİF')">GÖREV TAMAMLANDI (AKTİF)</button>
+            <button class="btn btn-aktif" onclick="durumGuncelle('AKTİF')">GÖREV TAMAMLANDI</button>
             <button class="btn btn-sos" onclick="acilDurumGonder()">🆘 SOS</button>
         </div>
     </div>
 
     <div class="telsiz-alt">
-        <div style="text-align:center; font-weight:bold; color:#94a3b8; font-size:0.8rem;">BAS-KONUŞ TELSİZ</div>
+        <div style="font-weight:bold; color:#94a3b8; font-size:0.8rem;">BAS-KONUŞ</div>
         <button class="mic-btn" id="micBtn">🎤</button>
     </div>
 
@@ -73,22 +72,19 @@
         const userKey = currentUser.replace(/\s/g, "_");
         let lat = 0, lon = 0;
 
-        // KONUM TAKİBİ
         navigator.geolocation.watchPosition(p => {
             lat = p.coords.latitude;
             lon = p.coords.longitude;
         }, null, { enableHighAccuracy: true });
 
-        // DURUM GÜNCELLEME
         window.durumGuncelle = (d) => {
             update(ref(db, 'aktifKullanicilar/' + userKey), { durum: d, acilDurum: false });
         };
 
         window.acilDurumGonder = () => {
-            update(ref(db, 'aktifKullanicilar/' + userKey), { acilDurum: true, durum: "🆘 ACİL YARDIM!" });
+            update(ref(db, 'aktifKullanicilar/' + userKey), { acilDurum: true, durum: "🆘 SOS!" });
         };
 
-        // VAKA DİNLEYİCİ + TİTREŞİM + 6 SN SES
         let sonVaka = "";
         onValue(ref(db, 'ortakKanal'), (s) => {
             const v = s.val();
@@ -96,7 +92,7 @@
                 document.getElementById('vakaMetin').innerText = v.metin;
                 document.getElementById('vakaZaman').innerText = v.zaman;
                 if(sonVaka !== "") {
-                    if ("vibrate" in navigator) navigator.vibrate([500, 200, 500, 200, 500]);
+                    if ("vibrate" in navigator) navigator.vibrate([500, 200, 500]);
                     const audio = document.getElementById('vakaSes');
                     audio.play();
                     setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 6000);
@@ -105,45 +101,47 @@
             }
         });
 
-        // 3 SANİYEDE BİR SİNYAL GÖNDER (ADMIN PANELİNDEN ANINDA SİLİNMEK İÇİN)
+        // 3 SANİYEDE BİR SİNYAL (Admin 5sn içinde silmesi için)
         setInterval(() => {
             update(ref(db, 'aktifKullanicilar/' + userKey), {
                 isim: currentUser,
                 timestamp: Date.now(),
                 enlem: lat,
                 boylam: lon,
-                sonSinyal: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                sonSinyal: new Date().toLocaleTimeString('tr-TR')
             });
         }, 3000);
 
-        // TELSİZ SİSTEMİ
+        // TELSİZ
         let mediaRecorder;
         const micBtn = document.getElementById('micBtn');
 
         micBtn.onpointerdown = async (e) => {
             e.preventDefault();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            let chunks = [];
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => {
-                    push(ref(db, 'telsizMesajlari'), {
-                        ekip: currentUser,
-                        ses: reader.result,
-                        zaman: new Date().toLocaleTimeString()
-                    });
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                let chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        push(ref(db, 'telsizMesajlari'), {
+                            ekip: currentUser,
+                            ses: reader.result,
+                            zaman: new Date().toLocaleTimeString()
+                        });
+                    };
                 };
-            };
-            mediaRecorder.start();
-            micBtn.classList.add('active');
+                mediaRecorder.start();
+                micBtn.classList.add('active');
+            } catch(e) { alert("Mikrofon izni gerekli!"); }
         };
 
         micBtn.onpointerup = () => {
-            if(mediaRecorder) mediaRecorder.stop();
+            if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
             micBtn.classList.remove('active');
         };
     </script>
