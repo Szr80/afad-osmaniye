@@ -6,8 +6,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f97316">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk9zbWFuaXllIEFGQUQiLAogICJzaG9ydF9uYW1lIjogIkFGQUQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiNmOTczMTYiLAogICJpY29ucyI6IFt7ICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvNTY0LzU2NDYxOS5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIgfV1pCn0=">
+    
+    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
     <title>Osmaniye AFAD</title>
+    
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
@@ -41,12 +45,14 @@
             <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
         </div>
     </div>
+
     <div class="ust-panel">
         <div class="zaman-satiri"><div id="tarih-ust"></div><div id="saat-ust"></div></div>
         <div id="ana-baslik">Osmaniye AFAD</div>
         <div style="font-size:0.8rem; font-weight:bold;"><span id="personelEtiket">PERSONEL: ...</span> | <span class="sistem-aktif">● AKTİF</span></div>
         <div id="konum-durum">📡 Konum aranıyor...</div>
     </div>
+
     <div class="vaka-alani">
         <div class="ana-vaka-kutusu" id="vakaKutu">
             <div id="vakaMetin" style="font-weight:900; font-size:1.2rem;">GÖREV BEKLENİYOR...</div>
@@ -59,11 +65,13 @@
         <div id="vakaGecmis"></div>
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
+
     <div class="alt-panel">
         <div onclick="window.cikisYap()" style="color:#ef4444; font-weight:bold; cursor:pointer; padding:10px;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
         <div style="width:70px;"></div>
     </div>
+
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script type="module">
@@ -79,17 +87,14 @@
         let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
-        // ARKA PLAN BEKÇİSİ (SERVICE WORKER) KAYDI
+        // BİLDİRİM SERVİSİ VE PWA KAYDI
         if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('push', e => { const d = e.data.json(); self.registration.showNotification(d.title, d.options); });`;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4geyB9KTs=');
+            });
         }
 
-        // BİLDİRİM İZNİ ZORLAMA
-        if ("Notification" in window) {
-            if (Notification.permission !== "granted") Notification.requestPermission();
-        }
+        if ("Notification" in window) Notification.requestPermission();
 
         const gecmisCiz = () => {
             document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka"><span class="gecmis-tarih">${v.tarih}</span>${v.metin}</div>`).join('');
@@ -111,15 +116,13 @@
             gecmisCiz();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // ARKA PLANA GEÇİNCE ADMİN PANELİNE BİLDİR
+            // ARKA PLAN DURUMU
             document.addEventListener("visibilitychange", () => {
-                const d = document.hidden ? "ARKA PLANDA" : "HAZIR";
-                update(userRef, { durum: d });
+                update(userRef, { durum: document.hidden ? "ARKA PLANDA" : "HAZIR" });
             });
 
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
-                document.getElementById('konum-durum').innerText = "📡 Canlı Konum Paylaşılıyor";
                 document.getElementById('konum-durum').style.color = "#22c55e";
             }, null, { enableHighAccuracy: true });
 
@@ -127,30 +130,21 @@
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
                     if (!sonVakaZamani || d.zaman !== sonVakaZamani) {
-                        
-                        // HER KOŞULDA ÜST BİLDİRİM (ZORLAYICI)
+                        // ARKA PLANDA BİLDİRİM
                         if (Notification.permission === "granted") {
-                            new Notification("OSMANİYE AFAD", { 
-                                body: d.metin, 
-                                icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                                tag: "vaka-uyari",
-                                renotify: true
-                            });
+                            new Notification("OSMANİYE AFAD", { body: d.metin, icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" });
                         }
-
                         document.getElementById('vakaMetin').innerText = d.metin;
                         document.getElementById('vakaButonlar').style.display = 'grid';
-                        document.getElementById('vakaKutu').style.borderLeft = "12px solid #22c55e";
                         vakaSes.loop = true; vakaSes.play().catch(()=>{});
                         setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
-                        if(navigator.vibrate) navigator.vibrate([400,200,400,200,400]);
+                        if(navigator.vibrate) navigator.vibrate([400,200,400]);
                         sonVakaZamani = d.zaman;
                         localStorage.setItem('sonVakaZamani', sonVakaZamani);
                     }
                 }
             });
 
-            // Bağlantı ve SOS Fonksiyonları
             onValue(ref(db, ".info/connected"), (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(userRef).remove();
@@ -158,6 +152,7 @@
                 }
             });
 
+            // SOS VE MANDAL (ORİJİNAL)
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
@@ -195,14 +190,11 @@
         window.gorevTamamla = () => {
             vakaSes.pause();
             const txt = document.getElementById('vakaMetin').innerText;
-            const simdi = new Date();
-            const tarihEtiket = simdi.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-            vakaListesi.unshift({ metin: txt, tarih: tarihEtiket });
+            vakaListesi.unshift({ metin: txt, tarih: new Date().toLocaleString('tr-TR') });
             localStorage.setItem('vakaGecmis', JSON.stringify(vakaListesi.slice(0,5)));
             gecmisCiz();
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
-            document.getElementById('vakaKutu').style.borderLeft = "12px solid #f97316";
             durumGuncelle("HAZIR");
         };
         setInterval(() => {
