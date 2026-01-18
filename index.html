@@ -12,7 +12,6 @@
 
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
-        /* GÖNDERDİĞİN DOSYADAKİ TAM TASARIM */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding-top: calc(10px + env(safe-area-inset-top)); }
@@ -41,7 +40,6 @@
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
         #sesBildirim { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(34, 197, 94, 0.95); color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; display: none; z-index: 10000; border: 2px solid #fff; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.5s infinite; }
-        @keyframes s-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     </style>
 </head>
 <body>
@@ -75,7 +73,7 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="localStorage.clear(); location.reload();" style="color:#ef4444; font-weight:bold; font-size:0.7rem; cursor:pointer;">🚪 ÇIKIŞ</div>
+        <div onclick="window.cikisYap()" style="color:#ef4444; font-weight:bold; font-size:0.7rem; cursor:pointer;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
         <div style="width:50px;"></div>
     </div>
@@ -84,13 +82,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // SERVICE WORKER (Mobil Uygulama Kurulumu İçin)
         if ('serviceWorker' in navigator) {
             const swCode = "self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });";
             const blob = new Blob([swCode], {type: 'text/javascript'});
@@ -106,6 +103,17 @@
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
             if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
+        };
+
+        // --- GÜNCELLENMİŞ ÇIKIŞ FONKSİYONU ---
+        window.cikisYap = () => {
+            if(confirm("Sistemden çıkış yapılsın mı?")) {
+                const userPath = currentUser.replace(/\s/g, "_");
+                set(ref(db, 'aktifKullanicilar/' + userPath), null).then(() => {
+                    localStorage.clear();
+                    location.reload();
+                });
+            }
         };
 
         if(currentUser) {
@@ -124,12 +132,6 @@
         }
 
         function vakaTakibi() {
-            onValue(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), (s) => {
-                if (s.val()?.acilDurum === false) {
-                    document.body.classList.remove('destek-mod');
-                    document.getElementById('acilDestekBtn').innerText = "🆘 ACİL DESTEK (3 SN)";
-                }
-            });
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
@@ -142,7 +144,6 @@
             });
         }
 
-        // --- MİKROFON SADECE BUTONA BASILINCA ---
         function telsizMandal() {
             const mBtn = document.getElementById('mandalBtn');
             let stream;
@@ -165,7 +166,7 @@
                     };
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
-                } catch (err) { alert("Mikrofon izni gerekli!"); }
+                } catch (err) { console.error(err); }
             });
             mBtn.addEventListener('touchend', () => {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -174,25 +175,6 @@
                 }
             });
         }
-
-        // --- ACİL DESTEK (TİTREŞİMLİ) ---
-        let acilZ, titresimInterval;
-        const acilBtn = document.getElementById('acilDestekBtn');
-        acilBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if(document.body.classList.contains('destek-mod')) return;
-            acilBtn.innerText = "GÖNDERİLİYOR...";
-            let s = 0;
-            const titret = () => { if(navigator.vibrate) navigator.vibrate(200); s++; if(s>=3) clearInterval(titresimInterval); };
-            titret();
-            titresimInterval = setInterval(titret, 1000);
-            acilZ = setTimeout(() => {
-                update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { acilDurum: true, durum: "🆘 SOS!" });
-                document.body.classList.add('destek-mod');
-                acilBtn.innerText = "SİNYAL İLETİLDİ!";
-            }, 3000);
-        });
-        acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); clearInterval(titresimInterval); if(!document.body.classList.contains('destek-mod')) acilBtn.innerText = "🆘 ACİL DESTEK (3 SN)"; });
 
         window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
         window.gorevTamamla = () => {
@@ -207,6 +189,19 @@
         };
         function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
         function konumTakip() { navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true}); }
+        
+        let acilZ;
+        const acilBtn = document.getElementById('acilDestekBtn');
+        acilBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            acilZ = setTimeout(() => {
+                update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { acilDurum: true, durum: "🆘 SOS!" });
+                document.body.classList.add('destek-mod');
+                acilBtn.innerText = "SİNYAL İLETİLDİ!";
+            }, 3000);
+        });
+        acilBtn.addEventListener('touchend', () => clearTimeout(acilZ));
+
         setInterval(() => {
             const d = new Date();
             document.getElementById('tarih-ust').innerText = d.toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'});
