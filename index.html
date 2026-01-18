@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
     <title>OSMANİYE AFAD</title>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
@@ -13,17 +12,16 @@
         #saat { font-size: 2.8rem; color: #f97316; font-weight: bold; line-height: 1; }
         #tarih-ust { font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px; }
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.7rem; font-weight: bold; margin-top: 5px; }
-        #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; transition: 0.3s; }
+        #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 15px; gap: 12px; overflow-y: auto; }
         .kutu { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 8px solid #f97316; width: 92%; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.4rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
         #vakaSayac { font-size: 0.65rem; color: #94a3b8; }
-        .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; width: 92%; margin-top: 5px; cursor: pointer; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+        .btn-onay { display: none; padding: 15px; background: #22c55e; color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; width: 92%; margin-top: 10px; cursor: pointer; }
         .gecmis-panel { width: 92%; text-align: left; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; padding-bottom: 50px; }
         .gecmis-baslik { color: #64748b; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
-        .gecmis-item { background: #1e293b; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid #475569; color: #cbd5e1; }
-        .gecmis-alt { display: flex; justify-content: space-between; font-size: 0.65rem; color: #64748b; margin-top: 4px; border-top: 1px solid #2d3748; padding-top: 3px; }
-        .yapimci { position: fixed; bottom: 5px; width: 100%; font-size: 0.6rem; color: #334155; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; z-index: 100; pointer-events: none; }
+        .gecmis-item { background: #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; border-left: 4px solid #475569; color: #cbd5e1; }
+        .yapimci { position: fixed; bottom: 5px; width: 100%; font-size: 0.6rem; color: #334155; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; pointer-events: none; }
         #overlay { position: fixed; inset: 0; background: #0f172a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .btn-baslat { padding: 18px 40px; background: #f97316; color: white; border: none; border-radius: 50px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
     </style>
@@ -32,14 +30,14 @@
 
     <div id="overlay">
         <h1 style="letter-spacing: 2px;">OSMANİYE AFAD</h1>
-        <button class="btn-baslat" id="baslatBtn">OTOMATİK MODU AÇ</button>
+        <button class="btn-baslat" id="baslatBtn">SİSTEMİ BAŞLAT / OTOMATİK MOD</button>
         <div style="margin-top: 25px; color: #334155; font-size: 0.65rem;">YAZILIM: SEZER ÇALT</div>
     </div>
 
     <div class="ust-panel">
         <div id="tarih-ust">--/--/----</div>
         <div id="saat">00:00:00</div>
-        <div class="status-bar"><div id="statusDot"></div><span id="statusText">SİSTEM HAZIR</span></div>
+        <div class="status-bar"><div id="statusDot"></div><span id="statusText">SİSTEM AKTİF</span></div>
     </div>
 
     <div class="vaka-alani">
@@ -51,7 +49,7 @@
             <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
         </div>
         <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
-        <div class="gecmis-panel"><div class="gecmis-baslik">Geçmiş Vakalar</div><div id="gecmisListe"></div></div>
+        <div class="gecmis-panel"><div class="gecmis-baslik">Son Vakalar</div><div id="gecmisListe"></div></div>
     </div>
 
     <div class="yapimci">YAZILIM: SEZER ÇALT</div>
@@ -67,17 +65,12 @@
 
         const ses = document.getElementById('vakaSes');
         const onayBtn = document.getElementById('onayBtn');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-
-        let vakaGecmisi = [];
         let sonGelenMesaj = "";
         let ilkAtlama = true;
         let alarmSuresi;
-        let vakaGelisZamani = null;
-
-        // EKRANI CANLI TUTMA
         let wakeLock = null;
+
+        // EKRANI AÇIK TUTMA FONKSİYONU
         const requestWakeLock = async () => {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         };
@@ -93,65 +86,36 @@
             if (Notification.permission !== "granted") Notification.requestPermission();
         };
 
-        onValue(ref(db, ".info/connected"), (snap) => {
-            if (snap.val() === true) {
-                statusText.innerText = "SİSTEM ÇEVRİMİÇİ";
-                statusDot.style.background = "#22c55e";
-            } else {
-                statusText.innerText = "BAĞLANTI KOPUK!";
-                statusDot.style.background = "#ef4444";
-            }
-        });
-
+        // SAAT VE BAĞLANTI KONTROLÜ
         setInterval(() => {
             document.getElementById('saat').innerText = new Date().toLocaleTimeString('tr-TR');
             document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
-            if (vakaGelisZamani) {
-                const fark = Math.floor((new Date() - vakaGelisZamani) / 60000);
-                document.getElementById('vakaSayac').innerText = fark > 0 ? fark + " dk önce" : "Az önce";
-            }
         }, 1000);
 
+        // VAKA DİNLEME (GECİKMESİZ VE ZORLAYICI)
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if (data && data.metin) {
                 const yeniMetin = data.metin.trim();
-                const ekrandakiMetin = document.getElementById('vakaMetin').innerText;
                 const gercekVakaMi = !yeniMetin.includes("BEKLENİYOR") && yeniMetin !== "";
 
                 if (!ilkAtlama && yeniMetin !== sonGelenMesaj && gercekVakaMi) {
-                    // OTOMATİK BİLDİRİM VE SES
-                    if (Notification.permission === "granted") {
-                        navigator.serviceWorker.ready.then(reg => {
-                            reg.showNotification('🚨 YENİ AFAD VAKASI!', { body: yeniMetin, requireInteraction: true });
-                        });
-                    }
-
-                    // Geçmişe Ekle
-                    if (!ekrandakiMetin.includes("BEKLENİYOR") && ekrandakiMetin !== "") {
-                        vakaGecmisi.unshift({ metin: ekrandakiMetin, saat: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}), tarih: new Date().toLocaleDateString('tr-TR') });
-                        if(vakaGecmisi.length > 5) vakaGecmisi.pop();
-                        document.getElementById('gecmisListe').innerHTML = vakaGecmisi.map(v => `<div class="gecmis-item"><span>${v.metin}</span><div class="gecmis-alt"><span>📅 ${v.tarih}</span><span>⏰ ${v.saat}</span></div></div>`).join('');
-                    }
-
-                    document.getElementById('vakaMetin').innerText = yeniMetin;
-                    vakaGelisZamani = new Date();
-                    
-                    // Ses Çalma Zorlaması
-                    ses.currentTime = 0; ses.loop = true; 
-                    ses.play().catch(() => {
-                        console.log("Ses için etkileşim gerekiyor.");
+                    // ARKA PLAN BİLDİRİMİNİ TETİKLE
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification('🚨 YENİ VAKA!', { body: yeniMetin, requireInteraction: true });
                     });
 
+                    // SES VE GÖRSEL UYARI
+                    ses.currentTime = 0; ses.loop = true; ses.play().catch(() => {});
+                    document.getElementById('vakaMetin').innerText = yeniMetin;
                     onayBtn.style.display = 'block';
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
-                    
+
                     clearTimeout(alarmSuresi);
                     alarmSuresi = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
-                } else if (!gercekVakaMi) {
+                } else {
                     document.getElementById('vakaMetin').innerText = yeniMetin;
-                    onayBtn.style.display = 'none';
-                    ses.pause();
+                    if(!gercekVakaMi) { onayBtn.style.display = 'none'; ses.pause(); }
                 }
                 sonGelenMesaj = yeniMetin;
                 ilkAtlama = false;
@@ -160,11 +124,12 @@
 
         onayBtn.onclick = () => {
             clearTimeout(alarmSuresi);
-            ses.loop = false; ses.pause(); ses.currentTime = 0;
-            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR') });
+            ses.loop = false; ses.pause();
+            set(ref(db, 'vakaDurum'), { durum: "OK", zaman: new Date().toLocaleTimeString() });
             onayBtn.style.display = 'none';
         };
 
+        // Uygulama öne geldiğinde uyanık kalmayı tazele
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') requestWakeLock();
         });
