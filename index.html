@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="AFAD SAHA">
-    
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuL2luZGV4Lmh0bWwiLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiNmOTczMTYiLAogICJpY29ucyI6IFt7ICJzcmMiOiAiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZyZWVwaWMuY29tLzUxMi85MTk1LzkxOTU5MTAucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUiIH1dCn0=">
-
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiI2Y5NzMxNiIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIgfV0KfQ==">
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -93,20 +88,9 @@
         let mediaRecorder, audioChunks = [];
         let userLat = 0, userLon = 0;
 
-        // --- PWA SERVICE WORKER KAYDI ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const b = new Blob(["self.addEventListener('fetch', (e)=>{});"], {type: 'text/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(b));
-            });
-        }
-
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
-            if(name.length > 2) {
-                localStorage.setItem('afadUser', name);
-                location.reload();
-            }
+            if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
         };
 
         window.onload = () => {
@@ -126,34 +110,16 @@
             }
         };
 
-        // --- MİKROFON: SADECE BUTONA BASINCA AKTİF OLUR ---
-        async function telsizHazirla() {
-            const mBtn = document.getElementById('mandalBtn');
-            mBtn.addEventListener('touchstart', async (e) => {
-                e.preventDefault();
-                audioChunks = [];
-                mBtn.style.background = "#ea580c";
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(new Blob(audioChunks));
-                        reader.onloadend = () => {
-                            push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
-                            document.getElementById('sesBildirim').style.display = 'block';
-                            setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 1500);
-                        };
-                        stream.getTracks().forEach(t => t.stop()); // Mikrofonu kapatır
-                    };
-                    mediaRecorder.start();
-                } catch(err) { console.log(err); }
-            });
-            mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
-        }
-
         function vakaTakibiniBaslat() {
+            // SOS ONALAYI DİNLE (Admin Onayladığında Ekranı Eskiye Döndürür)
+            onValue(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), (s) => {
+                const data = s.val();
+                if (data && data.acilDurum === false) {
+                    document.body.classList.remove('destek-mod');
+                    document.getElementById('acilDestekBtn').innerText = "🆘 ACİL DESTEK (3 SN)";
+                }
+            });
+
             let ilk = true;
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
@@ -168,6 +134,26 @@
             });
         }
 
+        async function telsizHazirla() {
+            const mBtn = document.getElementById('mandalBtn');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const reader = new FileReader();
+                reader.readAsDataURL(new Blob(audioChunks));
+                reader.onloadend = () => {
+                    push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
+                    document.getElementById('sesBildirim').style.display = 'block';
+                    setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 1500);
+                };
+            };
+            mBtn.addEventListener('touchstart', (e) => { e.preventDefault(); audioChunks=[]; mediaRecorder.start(); mBtn.style.background="#ea580c"; });
+            mBtn.addEventListener('touchend', () => { if(mediaRecorder.state!=="inactive") mediaRecorder.stop(); mBtn.style.background="#f97316"; });
+        }
+
+        window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
+
         window.gorevTamamla = () => {
             const txt = document.getElementById('vakaMetin').innerText;
             vakaListesi.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${txt}`);
@@ -176,7 +162,7 @@
             gecmisGuncelle();
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
-            update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: "HAZIR / BOŞTA" });
+            durumGuncelle("HAZIR / BOŞTA");
         };
 
         function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
