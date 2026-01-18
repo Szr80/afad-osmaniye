@@ -3,9 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Osmaniye AFAD | Uç Birim</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AFAD Uç Birim">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
+    
+    <script>
+        const manifest = {
+            "name": "Osmaniye AFAD Uç Birim",
+            "short_name": "AFAD",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#f97316",
+            "icons": [{
+                "src": "https://cdn-icons-png.flaticon.com/512/564/564619.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }]
+        };
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.querySelector('link[rel="manifest"]')?.remove();
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+    </script>
+
+    <title>Osmaniye AFAD</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
@@ -13,12 +42,12 @@
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; position: relative; gap: 15px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .gecmis-baslik { font-size: 0.8rem; font-weight: 900; color: #94a3b8; text-align: left; margin-top: 10px; }
-        .kucuk-vaka { background: #1e293b; padding: 12px; border-radius: 10px; font-size: 0.85rem; text-align: left; opacity: 0.7; border-left: 4px solid #334155; }
+        .gecmis-baslik { font-size: 0.8rem; font-weight: 900; color: #94a3b8; text-align: left; }
+        .kucuk-vaka { background: #1e293b; padding: 12px; border-radius: 10px; font-size: 0.85rem; text-align: left; opacity: 0.7; border-left: 4px solid #334155; margin-bottom: 5px; }
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 22px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; flex-shrink: 0; }
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
         
-        #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.4); white-space: nowrap; }
+        #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.4); white-space: nowrap; }
         #onayBox.aktif { top: 20px; }
 
         body.sos-modu { background: #7f1d1d !important; }
@@ -47,15 +76,15 @@
             <div id="vakaMetin" style="font-weight:900; font-size: 1.1rem;">GÖREV BEKLENİYOR...</div>
         </div>
         
-        <div class="gecmis-baslik">SON GÖREVLER</div>
-        <div id="vakaGecmisListe" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        <div class="gecmis-baslik">GÖREV GEÇMİŞİ</div>
+        <div id="vakaGecmisListe"></div>
 
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
 
     <div class="alt-panel">
         <div id="cikisBtn" style="color:#ef4444; font-weight:bold; cursor:pointer; padding:10px;">🚪 ÇIKIŞ</div>
-        <div style="width:85px; height:85px; background:#f97316; border-radius:50%; border:5px solid #450a0a; display:flex; align-items:center; justify-content:center; font-size:2rem; margin-top:-30px;">🎤</div>
+        <div style="width:85px; height:85px; background:#f97316; border-radius:50%; border:8px solid #450a0a; display:flex; align-items:center; justify-content:center; font-size:2rem; margin-top:-35px; color:white;">🎤</div>
         <div style="width:70px;"></div>
     </div>
 
@@ -80,39 +109,36 @@
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
 
-            // 1. BAĞLANTI KONTROLÜ
             onDisconnect(userRef).remove();
 
-            // 2. ÇIKIŞ
             document.getElementById('cikisBtn').onclick = () => {
                 if(confirm("Sistemden çıkış yapılsın mı?")) {
                     remove(userRef).then(() => { localStorage.clear(); location.reload(); });
                 }
             };
 
-            // 3. CANLI VAKA DİNLEME (ORTAK KANAL)
+            // VAKA DİNLEME AKTİF
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
-                if(d && d.metin) {
-                    document.getElementById('vakaMetin').innerText = d.metin;
-                    // Yeni vaka geldiğinde kısa bir titreşimle uyar
+                if(d) {
+                    document.getElementById('vakaMetin').innerText = d.metin || "GÖREV BEKLENİYOR...";
                     if(navigator.vibrate) navigator.vibrate(200);
                 }
             });
 
-            // 4. VAKA GEÇMİŞİ DİNLEME (SON 5)
+            // GEÇMİŞ DİNLEME AKTİF
             onValue(ref(db, 'vakaGecmis'), (s) => {
                 const liste = document.getElementById('vakaGecmisListe');
                 liste.innerHTML = "";
                 const veriler = s.val();
                 if(veriler) {
                     Object.values(veriler).reverse().slice(1, 6).forEach(v => {
-                        liste.innerHTML += `<div class="kucuk-vaka"><b>${v.saat}:</b> ${v.metin}</div>`;
+                        liste.innerHTML += `<div class="kucuk-vaka"><b>${v.saat || ''}:</b> ${v.metin}</div>`;
                     });
                 }
             });
 
-            // 5. SOS MEKANİZMASI
+            // SOS - RİTMİK TİTREŞİM VE MERKEZ ONAYI
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
 
@@ -139,7 +165,6 @@
             sosBtn.addEventListener('touchstart', startSos);
             sosBtn.addEventListener('touchend', stopSos);
 
-            // 6. MERKEZ ONAYI TAKİBİ
             onValue(userRef, (s) => {
                 const d = s.val();
                 if(d?.onay === true) {
@@ -155,15 +180,8 @@
                 }
             });
 
-            // 7. KONUM GÜNCELLEME
             navigator.geolocation.watchPosition((p) => {
-                update(userRef, { 
-                    lat: p.coords.latitude, 
-                    lng: p.coords.longitude, 
-                    timestamp: Date.now(), 
-                    isim: currentUser,
-                    durum: document.body.classList.contains('sos-modu') ? "🆘 ACİL YARDIM!" : "AKTİF"
-                });
+                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
             }, null, { enableHighAccuracy: true });
         }
     </script>
