@@ -10,17 +10,20 @@
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: 0.5s; }
         
-        /* GİRİŞ EKRANI */
+        /* GİRİŞ PANELİ */
         #loginOverlay { position: fixed; inset: 0; background: #0f172a; z-index: 20000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { background: #1e293b; padding: 30px; border-radius: 20px; border: 2px solid #f97316; width: 85%; max-width: 350px; box-shadow: 0 0 30px rgba(249, 115, 22, 0.2); }
         .login-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 2px solid #334155; background: #0f172a; color: white; font-size: 1rem; text-align: center; box-sizing: border-box; }
         
-        /* ANA PANEL */
-        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; }
+        /* ÜST PANEL */
+        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; position: relative; }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.8rem; font-weight: bold; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
         
-        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
+        /* ÇIKIŞ BUTONU */
+        .btn-cikis { position: absolute; right: 10px; bottom: -40px; background: #334155; color: #ef4444; border: 1px solid #450a0a; padding: 6px 15px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; cursor: pointer; z-index: 100; text-transform: uppercase; }
+
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; margin-top: 30px; }
         .kutu { background: #1e293b; padding: 20px; border-radius: 15px; border-left: 10px solid #f97316; text-align: left; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
         #vakaMetin { font-size: 1.3rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
         
@@ -32,14 +35,13 @@
 
         /* TELSİZ MANDALI */
         .mandal-bolumu { background: #1e293b; padding: 15px; border-top: 2px solid #334155; display: flex; align-items: center; justify-content: space-around; }
-        .btn-mandal { width: 75px; height: 75px; border-radius: 50%; background: #f97316; border: 6px solid #450a0a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; touch-action: none; }
-        .btn-mandal:active { background: #dc2626; transform: scale(0.9); }
+        .btn-mandal { width: 75px; height: 75px; border-radius: 50%; background: #f97316; border: 6px solid #450a0a; color: white; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: none; }
 
-        /* BUTONLAR */
+        /* DURUM BUTONLARI */
         .btn-grup { display: none; flex-direction: column; gap: 10px; width: 100%; }
         .btn { padding: 16px; border-radius: 12px; border: none; font-weight: 900; color: white; font-size: 1.1rem; text-transform: uppercase; cursor: pointer; }
         
-        .gecmis-item { background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; }
+        .gecmis-item { background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; margin-top: 5px; }
         .kritik-mod { background: #450a0a !important; animation: flash 1.2s infinite; }
         @keyframes flash { 0%, 100% {background: #0f172a;} 50% {background: #7f1d1d;} }
     </style>
@@ -49,10 +51,10 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color:#f97316; margin:0;">AFAD PERSONEL</h2>
-            <p style="font-size:0.8rem; color:#94a3b8; margin:10px 0;">İSİM VE PIN GİRİNİZ</p>
+            <p style="font-size:0.8rem; color:#94a3b8; margin:10px 0;">İSİM VE PIN GİREREK BAŞLATIN</p>
             <input type="text" id="userName" class="login-input" placeholder="Adınız Soyadınız">
             <input type="password" id="pinInput" class="login-input" placeholder="****" maxlength="4" inputmode="numeric">
-            <button class="btn" style="background:#f97316; width:100%;" onclick="sistemiAc()">OTURUM AÇ</button>
+            <button class="btn" style="background:#f97316; width:100%;" onclick="sistemiAc()">OTURUMU BAŞLAT</button>
         </div>
     </div>
 
@@ -62,12 +64,13 @@
             <div id="saat-ust">00:00:00</div>
         </div>
         <div id="ana-baslik">OSMANİYE AFAD UÇ BİRİM</div>
-        <div id="personelEtiket" style="font-size:0.75rem; color:#22c55e; font-weight:bold;">BAĞLANTI BEKLENİYOR...</div>
+        <div id="personelEtiket" style="font-size:0.75rem; color:#22c55e; font-weight:bold;">SİSTEM HAZIR</div>
+        <button class="btn-cikis" onclick="guvenliCikis()">🔴 GÜVENLİ ÇIKIŞ</button>
     </div>
 
     <div class="vaka-alani">
         <div class="kutu" id="vakaKutusu">
-            <div id="vakaDurumEtiket" style="color:#f97316; font-size:0.75rem; font-weight:900;">● SİSTEM AKTİF</div>
+            <div id="vakaDurumEtiket" style="color:#f97316; font-size:0.75rem; font-weight:900;">● DURUM: AKTİF</div>
             <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
         </div>
 
@@ -83,7 +86,7 @@
     </div>
 
     <div class="mandal-bolumu">
-        <div id="mandalDurum" style="font-size:0.7rem; color:#94a3b8; font-weight:bold; line-height:1.2;">TELSİZ<br>BAS-KONUŞ</div>
+        <div id="mandalDurum" style="font-size:0.65rem; color:#94a3b8; font-weight:bold;">TELSİZ<br>BAS-KONUŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
     </div>
 
@@ -99,57 +102,69 @@
 
         let currentUser = "";
         const ses = document.getElementById('vakaSes');
-        let alarmZamanlayici, acilZamanlayici, vakaGecmisi = [];
+        let vakaGecmisi = [];
 
-        // 1. SİSTEM GİRİŞİ VE AKTİF KULLANICI KAYDI
+        // OTURUM KONTROLÜ (Açılışta)
+        window.onload = () => {
+            const savedUser = localStorage.getItem('afadUser');
+            if(savedUser) {
+                currentUser = savedUser;
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
+                aktifKullaniciKaydet();
+            }
+        };
+
+        const aktifKullaniciKaydet = () => {
+            const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
+            set(userRef, { isim: currentUser, giris: new Date().toLocaleTimeString() });
+            onDisconnect(userRef).remove();
+        };
+
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
             const pin = document.getElementById('pinInput').value;
-            
             if(name.length > 2 && pin === "1234") {
                 currentUser = name;
+                localStorage.setItem('afadUser', currentUser); // Kalıcı hafızaya al
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
-                
-                // Firebase'e aktif kullanıcıyı ekle ve kopunca sil
-                const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
-                set(userRef, { isim: currentUser, giris: new Date().toLocaleTimeString() });
-                onDisconnect(userRef).remove();
-
+                aktifKullaniciKaydet();
                 ses.play().then(() => { ses.pause(); ses.currentTime = 0; });
-            } else { alert("Geçerli bir isim girin ve PIN'i (1234) doğrulayın!"); }
+            } else { alert("Geçersiz Giriş!"); }
         };
 
-        // 2. CANLI SAAT VE TARİH
+        window.guvenliCikis = () => {
+            if(confirm("Sistemden çıkış yapmak üzeresiniz. Oturumunuz sonlandırılsın mı?")) {
+                localStorage.removeItem('afadUser');
+                remove(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")));
+                location.reload();
+            }
+        };
+
+        // SAAT / TARİH
         setInterval(() => {
-            const simdi = new Date();
-            document.getElementById('saat-ust').innerText = simdi.toLocaleTimeString('tr-TR');
-            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long' });
+            const d = new Date();
+            document.getElementById('saat-ust').innerText = d.toLocaleTimeString('tr-TR');
+            document.getElementById('tarih-ust').innerText = d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'numeric', weekday:'long' });
         }, 1000);
 
-        // 3. ACİL DESTEK (3 SN BASILI TUTMA)
+        // ACİL DESTEK (SOS)
+        let acilZaman;
         const acilBtn = document.getElementById('acilDestekBtn');
         acilBtn.addEventListener('pointerdown', () => {
-            acilBtn.innerText = "GÖNDERİLİYOR...";
-            acilZamanlayici = setTimeout(() => {
-                set(ref(db, 'ekipDurum'), { 
-                    durum: "!!! ACİL DESTEK !!!", 
-                    isim: currentUser, 
-                    renk: "#ff0000", 
-                    zaman: new Date().toLocaleTimeString(), 
-                    acil: true 
-                });
+            acilBtn.innerText = "SİNYAL GİDİYOR...";
+            acilZaman = setTimeout(() => {
+                set(ref(db, 'ekipDurum'), { durum: "!!! ACİL DESTEK !!!", isim: currentUser, renk: "#ff0000", zaman: new Date().toLocaleTimeString(), acil: true });
                 document.body.classList.add('destek-mod');
-                acilBtn.innerText = "SİNYAL İLETİLDİ";
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 500]);
             }, 3000);
         });
         acilBtn.addEventListener('pointerup', () => {
-            clearTimeout(acilZamanlayici);
+            clearTimeout(acilZaman);
             if(!document.body.classList.contains('destek-mod')) acilBtn.innerText = "🆘 ACİL DESTEK (3 SN BASIN)";
         });
 
-        // 4. TELSİZ MANDALI (BAS-KONUŞ)
+        // TELSİZ
         let mediaRecorder, audioChunks = [];
         const mandalBtn = document.getElementById('mandalBtn');
         mandalBtn.addEventListener('pointerdown', async (e) => {
@@ -168,8 +183,7 @@
                 };
                 mediaRecorder.start();
                 document.getElementById('mandalDurum').innerText = "KAYITTA...";
-                if(navigator.vibrate) navigator.vibrate(50);
-            } catch (err) { alert("Mikrofon izni gerekli!"); }
+            } catch (err) { alert("Mikrofon hatası!"); }
         });
         mandalBtn.addEventListener('pointerup', () => {
             if(mediaRecorder && mediaRecorder.state === "recording") {
@@ -178,7 +192,7 @@
             }
         });
 
-        // 5. DURUM GÜNCELLEME
+        // DURUM GÜNCELLEME
         window.durumGuncelle = (durum, renk, bitis = false) => {
             set(ref(db, 'ekipDurum'), { durum, isim: currentUser, renk, zaman: new Date().toLocaleTimeString(), acil: false });
             if(bitis) {
@@ -188,16 +202,15 @@
             }
         };
 
-        // 6. VAKA DİNLEME VE GEÇMİŞ
+        // VAKA TAKİP VE GEÇMİŞ
         let sonMesaj = "";
         onValue(ref(db, 'ortakKanal'), (snapshot) => {
             const data = snapshot.val();
             if(data && data.metin && data.metin !== sonMesaj) {
                 const vakaVar = !data.metin.includes("BEKLENİYOR");
                 if(vakaVar) {
-                    ses.currentTime = 0; ses.loop = true; ses.play().catch(()=>{});
-                    clearTimeout(alarmZamanlayici);
-                    alarmZamanlayici = setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
+                    ses.currentTime = 0; ses.loop = true; ses.play();
+                    setTimeout(() => { ses.loop = false; ses.pause(); }, 6000);
                     
                     document.getElementById('vakaMetin').innerText = data.metin;
                     document.getElementById('islemButonlari').style.display = 'flex';
@@ -216,14 +229,8 @@
             }
         });
 
-        // 7. ADMİN ACİL DURUMU KAPATIRSA
-        onValue(ref(db, 'ekipDurum'), snapshot => {
-            const data = snapshot.val();
-            if(data && data.acil === false) {
-                document.body.classList.remove('destek-mod');
-                acilBtn.innerText = "🆘 ACİL DESTEK (3 SN BASIN)";
-            }
-        });
+        // ADMİN ONAYI
+        onValue(ref(db, 'ekipDurum'), s => { if(s.val() && s.val().acil === false) document.body.classList.remove('destek-mod'); });
     </script>
 </body>
 </html>
