@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiI2Y5NzMxNiIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIgfV0KfQ==">
-    
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        /* ÜST PANEL */
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
@@ -20,22 +17,18 @@
         #personelEtiket { font-size: 0.8rem; color: #f1f5f9; font-weight: bold; text-transform: uppercase; }
         .sistem-aktif { color: #22c55e; font-size: 0.75rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        /* VAKA ALANI */
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
-        /* BUTONLAR */
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; text-transform: uppercase; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
-        /* GEÇMİŞ */
         .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 10px; }
         #vakaGecmis { display: flex; flex-direction: column; gap: 8px; }
         .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; }
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
-        /* ALT PANEL */
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
         #sesBildirim { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(34, 197, 94, 0.95); color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; display: none; z-index: 10000; border: 2px solid #fff; }
@@ -90,8 +83,8 @@
         let vakaListesi = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
         let mediaRecorder, audioChunks = [];
         let userLat = 0, userLon = 0;
+        let vakaDinleyiciBaslatildi = false;
 
-        // SERVICE WORKER KAYDI (UYGULAMA DESTEĞİ İÇİN)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
         }
@@ -114,6 +107,7 @@
                 gecmisGuncelle();
                 telsizHazirla();
                 konumTakip();
+                vakaTakibiniBaslat(); // Sadece girişten sonra başlar
                 
                 const r = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
                 onDisconnect(r).remove(); 
@@ -128,6 +122,26 @@
                 }, 3000);
             }
         };
+
+        // VAKA TAKİBİ FONKSİYONU (GİRİŞ YAPILINCA ÇAĞRILIR)
+        function vakaTakibiniBaslat() {
+            if(vakaDinleyiciBaslatildi) return;
+            vakaDinleyiciBaslatildi = true;
+            let sonVaka = "";
+            onValue(ref(db, 'ortakKanal'), (s) => {
+                const d = s.val();
+                if(d && d.metin && d.metin !== sonVaka) {
+                    sonVaka = d.metin;
+                    if(!d.metin.includes("BEKLENİYOR")) {
+                        document.getElementById('vakaMetin').innerText = d.metin;
+                        document.getElementById('vakaButonlar').style.display = 'grid';
+                        vakaSes.loop = true; vakaSes.play();
+                        setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
+                        if(navigator.vibrate) navigator.vibrate([500,200,500]);
+                    }
+                }
+            });
+        }
 
         window.durumGuncelle = (dur) => {
             update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
@@ -165,21 +179,6 @@
             document.getElementById('tarih-ust').innerText = d.toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'});
             document.getElementById('saat-ust').innerText = d.toLocaleTimeString('tr-TR');
         }, 1000);
-
-        let sonVaka = "";
-        onValue(ref(db, 'ortakKanal'), (s) => {
-            const d = s.val();
-            if(d && d.metin && d.metin !== sonVaka) {
-                sonVaka = d.metin;
-                if(!d.metin.includes("BEKLENİYOR")) {
-                    document.getElementById('vakaMetin').innerText = d.metin;
-                    document.getElementById('vakaButonlar').style.display = 'grid';
-                    vakaSes.loop = true; vakaSes.play();
-                    setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
-                    if(navigator.vibrate) navigator.vibrate([500,200,500]);
-                }
-            }
-        });
 
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
