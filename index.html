@@ -202,11 +202,11 @@
 
                     if(navigator.vibrate) navigator.vibrate([500, 200, 500]);
                 } else if(!vakaVarMi) {
-                    document.getElementById('vakaMetin').innerText = "KOMUTA MERKEZİ BEKLENİYOR...";
+                    document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
                     document.getElementById('islemButonlari').style.display = 'none';
                     document.body.classList.remove('kritik-mod');
                     ses.pause();
-                    document.getElementById('vakaDurumEtiket').innerText = "● SİSTEM AKTİF / GÖREV BEKLENİYOR";
+                    document.getElementById('vakaDurumEtiket').innerText = "● SİSTEM AKTİF";
                 }
                 sonMesaj = metin;
             }
