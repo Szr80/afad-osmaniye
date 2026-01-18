@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="AFAD Uç Birim">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
     
     <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png"}]}'>
@@ -17,12 +16,12 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
         
-        /* ÜST PANEL */
+        /* ÜST PANEL: TARİH VE SAAT */
         .ust-panel { background: #1e293b; padding: 10px 15px; border-bottom: 5px solid #f97316; padding-top: calc(10px + env(safe-area-inset-top)); }
         .bilgi-satiri { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
         #ana-baslik { font-size: 1.3rem; color: #f97316; font-weight: 900; margin: 2px 0; }
         
-        /* CANLI KONUM İKONU */
+        /* CANLI KONUM VE ÇANAK */
         .konum-durum { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.65rem; color: #22c55e; font-weight: bold; margin-bottom: 5px; }
         .canak { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
@@ -34,12 +33,12 @@
         
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; flex-shrink: 0; }
         
-        /* ALT PANEL VE MANDAL */
+        /* ALT PANEL VE TELSİZ MANDALI */
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 80px; height: 80px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -35px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
         .btn-mandal.active { background: #dc2626; transform: scale(0.95); box-shadow: 0 0 20px #dc2626; }
 
-        #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
+        #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; box-shadow: 0 10px 20px rgba(0,0,0,0.4); white-space: nowrap; }
         #onayBox.aktif { top: 20px; }
 
         body.sos-modu { background: #7f1d1d !important; }
@@ -65,7 +64,7 @@
             <div class="canak"></div> SİSTEM ÇEVRİMİÇİ | CANLI KONUM AKTİF
         </div>
         <div id="ana-baslik">OSMANİYE AFAD</div>
-        <div id="personelEtiket" style="font-size:0.75rem; font-weight:bold; color:#f97316;"></div>
+        <div id="personelEtiket" style="font-size:0.75rem; font-weight:bold; color:#f97316; margin-top:5px;"></div>
     </div>
 
     <div class="vaka-alani">
@@ -79,7 +78,7 @@
     </div>
 
     <div class="alt-panel">
-        <div id="cikisBtn" style="color:#ef4444; font-weight:900; font-size:0.8rem;">🚪 ÇIKIŞ</div>
+        <div id="cikisBtn" style="color:#ef4444; font-weight:900; font-size:0.8rem; cursor:pointer;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
         <div style="width:50px;"></div>
     </div>
@@ -91,10 +90,13 @@
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        let currentUser = localStorage.getItem('afadUser') || "";
 
-        // CANLI TARİH/SAAT
+        // SERVICE WORKER KAYDI (PWA İÇİN KRİTİK)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7IH0pOw==');
+        }
+
+        // CANLI SAAT VE TARİH
         setInterval(() => {
             const simdi = new Date();
             const gunler = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
@@ -102,6 +104,7 @@
             document.getElementById('sagSaat').innerText = simdi.toLocaleTimeString('tr-TR');
         }, 1000);
 
+        let currentUser = localStorage.getItem('afadUser') || "";
         window.sistemiAc = () => {
             const n = document.getElementById('userName').value.trim();
             if(n) { localStorage.setItem('afadUser', n); location.reload(); }
@@ -114,72 +117,55 @@
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
 
             onDisconnect(userRef).remove();
-
             document.getElementById('cikisBtn').onclick = () => {
-                if(confirm("Çıkış yapılsın mı?")) {
-                    remove(userRef).then(() => { localStorage.clear(); location.reload(); });
-                }
+                if(confirm("Çıkış yapılsın mı?")) { remove(userRef).then(() => { localStorage.clear(); location.reload(); }); }
             };
 
-            // VAKA DİNLEME
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
-                if(d) {
-                    document.getElementById('vakaMetin').innerText = d.metin || "GÖREV BEKLENİYOR...";
-                    if(navigator.vibrate) navigator.vibrate(200);
-                }
+                if(d) { document.getElementById('vakaMetin').innerText = d.metin || "GÖREV BEKLENİYOR..."; if(navigator.vibrate) navigator.vibrate(200); }
             });
 
-            // GEÇMİŞ DİNLEME
             onValue(ref(db, 'vakaGecmis'), (s) => {
                 const liste = document.getElementById('vakaGecmisListe');
                 liste.innerHTML = "";
                 const veriler = s.val();
                 if(veriler) {
                     Object.values(veriler).reverse().slice(1, 6).forEach(v => {
-                        liste.innerHTML += `<div class="kucuk-vaka">
-                            <span style="color:#f97316; font-size:0.65rem;">${v.tarih || ''} | ${v.saat || ''}</span><br>${v.metin}</div>`;
+                        liste.innerHTML += `<div class="kucuk-vaka"><span style="color:#f97316; font-size:0.65rem;">${v.tarih || ''} | ${v.saat || ''}</span><br>${v.metin}</div>`;
                     });
                 }
             });
 
-            // TELSİZ
+            // TELSİZ MANDALI
             const mandal = document.getElementById('mandalBtn');
-            let mediaRecorder;
-            let audioChunks = [];
+            let mediaRecorder, audioChunks = [];
             mandal.ontouchstart = async (e) => {
-                e.preventDefault();
-                mandal.classList.add('active');
-                if(navigator.vibrate) navigator.vibrate(50);
+                e.preventDefault(); mandal.classList.add('active'); if(navigator.vibrate) navigator.vibrate(50);
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
                         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.readAsDataURL(blob);
-                        reader.onloadend = () => {
-                            push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') });
-                        };
+                        const reader = new FileReader(); reader.readAsDataURL(blob);
+                        reader.onloadend = () => { push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); };
                         audioChunks = [];
                     };
                     mediaRecorder.start();
-                } catch(e) { console.log("Mikrofon hatası"); }
+                } catch(err) { console.log(err); }
             };
             mandal.ontouchend = () => { mandal.classList.remove('active'); if(mediaRecorder) mediaRecorder.stop(); };
 
-            // SOS
+            // SOS SİSTEMİ
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
             const startSos = (e) => {
-                if(e) e.preventDefault();
-                if(navigator.vibrate) navigator.vibrate([200, 400, 200, 400, 200, 400]);
+                if(e) e.preventDefault(); if(navigator.vibrate) navigator.vibrate([200, 400, 200, 400]);
                 sosBtn.innerText = "GÖNDERİLİYOR...";
                 sosTimer = setTimeout(() => {
                     update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false, isim: currentUser, timestamp: Date.now() });
-                    document.body.classList.add('sos-modu');
-                    sosBtn.disabled = true;
+                    document.body.classList.add('sos-modu'); sosBtn.disabled = true;
                 }, 3000);
             };
             const stopSos = () => { if(!sosBtn.disabled){ clearTimeout(sosTimer); if(navigator.vibrate) navigator.vibrate(0); sosBtn.innerText="🆘 ACİL DESTEK (3 SN)"; } };
@@ -189,11 +175,8 @@
             onValue(userRef, (s) => {
                 const d = s.val();
                 if(d?.onay === true) {
-                    const box = document.getElementById('onayBox');
-                    box.classList.add('aktif');
-                    document.body.classList.remove('sos-modu');
-                    sosBtn.disabled = false;
-                    sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
+                    const box = document.getElementById('onayBox'); box.classList.add('aktif');
+                    document.body.classList.remove('sos-modu'); sosBtn.disabled = false; sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
                     setTimeout(() => { box.classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF" }); }, 4000);
                 }
             });
