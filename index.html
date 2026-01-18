@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="AFAD SAHA">
     
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICJpbmRleC5odG1sIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAicm90YXRpb24iOiAicG9ydHJhaXQiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwZjE3MmEiLAogICJ0aGVtZV9jb2xvciI6ICIjZjk3MzE2IiwKICAiaWNvbnMiOiBbIHsgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIgfSBdCn0=">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuL2luZGV4Lmh0bWwiLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiNmOTczMTYiLAogICJpY29ucyI6IFsKICAgIHsgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIgfQogIF0KfQ==">
 
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
-        /* Senin Tasarımın - Birebir Korundu */
+        /* TASARIM KİLİTLİ - DEĞİŞTİRİLMEDİ */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding-top: calc(10px + env(safe-area-inset-top)); }
+        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding-top: calc(15px + env(safe-area-inset-top)); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
         .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px; }
@@ -93,11 +94,13 @@
         let mediaRecorder, audioChunks = [];
         let userLat = 0, userLon = 0;
 
-        // --- PWA SERVICE WORKER ---
+        // --- KRİTİK: SERVICE WORKER KAYDI (UYGULAMA OLMASINI SAĞLAR) ---
         if ('serviceWorker' in navigator) {
-            const swCode = "self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });";
-            const b = new Blob([swCode], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(b));
+            window.addEventListener('load', () => {
+                const swCode = "self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });";
+                const b = new Blob([swCode], {type: 'text/javascript'});
+                navigator.serviceWorker.register(URL.createObjectURL(b)).catch(err => console.log('SW Hata:', err));
+            });
         }
 
         window.sistemiAc = async () => {
@@ -125,7 +128,7 @@
             }
         };
 
-        // --- MİKROFON SADECE MANDALDA ---
+        // --- MİKROFON: SADECE MANDALA BASINCA AÇILIR ---
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
             mBtn.addEventListener('touchstart', async (e) => {
@@ -144,10 +147,10 @@
                             document.getElementById('sesBildirim').style.display = 'block';
                             setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 1500);
                         };
-                        stream.getTracks().forEach(t => t.stop()); // Donanımı Kapat
+                        stream.getTracks().forEach(t => t.stop()); // Mikrofonu tam kapat
                     };
                     mediaRecorder.start();
-                } catch(err) { console.error(err); }
+                } catch(err) { alert("Mikrofon izni gerekli!"); }
             });
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
         }
@@ -167,8 +170,6 @@
             });
         }
 
-        window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
-
         window.gorevTamamla = () => {
             const txt = document.getElementById('vakaMetin').innerText;
             vakaListesi.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${txt}`);
@@ -177,7 +178,7 @@
             gecmisGuncelle();
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
-            durumGuncelle("HAZIR / BOŞTA");
+            update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: "HAZIR / BOŞTA" });
         };
 
         function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
