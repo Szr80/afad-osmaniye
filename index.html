@@ -81,9 +81,8 @@
         let currentUser = localStorage.getItem('afadUser') || "";
         const vakaSes = document.getElementById('vakaSes');
         let vakaListesi = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
-        let mediaRecorder, audioChunks = [];
-        let userLat = 0, userLon = 0;
-        let vakaDinleyiciBaslatildi = false;
+        let mediaRecorder, audioChunks = [], currentStream = null;
+        let userLat = 0, userLon = 0, vakaDinleyiciBaslatildi = false;
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
@@ -92,8 +91,10 @@
         window.sistemiAc = async () => {
             const name = document.getElementById('userName').value.trim();
             if(name.length > 2) {
+                // Sadece izin kontrolü yapıyoruz, akışı hemen kapatıyoruz
                 try {
-                    await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const check = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    check.getTracks().forEach(t => t.stop()); 
                     localStorage.setItem('afadUser', name);
                     location.reload();
                 } catch(e) { alert("Mikrofon izni şart!"); }
@@ -107,23 +108,20 @@
                 gecmisGuncelle();
                 telsizHazirla();
                 konumTakip();
-                vakaTakibiniBaslat(); // Sadece girişten sonra başlar
+                vakaTakibiniBaslat();
                 
                 const r = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
                 onDisconnect(r).remove(); 
                 setInterval(() => {
                     update(r, {
-                        isim: currentUser,
-                        timestamp: Date.now(),
-                        enlem: userLat,
-                        boylam: userLon,
+                        isim: currentUser, timestamp: Date.now(),
+                        enlem: userLat, boylam: userLon,
                         sonSinyal: new Date().toLocaleTimeString()
                     });
                 }, 3000);
             }
         };
 
-        // VAKA TAKİBİ FONKSİYONU (GİRİŞ YAPILINCA ÇAĞRILIR)
         function vakaTakibiniBaslat() {
             if(vakaDinleyiciBaslatildi) return;
             vakaDinleyiciBaslatildi = true;
@@ -180,24 +178,45 @@
             document.getElementById('saat-ust').innerText = d.toLocaleTimeString('tr-TR');
         }, 1000);
 
+        // MİKROFONU SADECE BASILDIĞINDA AÇAN YENİ TELSİZ SİSTEMİ
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
-            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const reader = new FileReader();
-                reader.readAsDataURL(new Blob(audioChunks, { type: mimeType }));
-                reader.onloadend = () => {
-                    push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
-                    document.getElementById('sesBildirim').style.display = 'block';
-                    setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 2000);
-                };
-                audioChunks = [];
-            };
-            mBtn.addEventListener('touchstart', (e) => { e.preventDefault(); audioChunks=[]; mediaRecorder.start(); mBtn.style.background="#ea580c"; });
-            mBtn.addEventListener('touchend', () => { if(mediaRecorder.state !== "inactive") mediaRecorder.stop(); mBtn.style.background="#f97316"; });
+
+            mBtn.addEventListener('touchstart', async (e) => {
+                e.preventDefault();
+                try {
+                    audioChunks = [];
+                    currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(currentStream, { mimeType });
+                    
+                    mediaRecorder.ondataavailable = (ev) => audioChunks.push(ev.data);
+                    mediaRecorder.onstop = () => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(new Blob(audioChunks, { type: mimeType }));
+                        reader.onloadend = () => {
+                            push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
+                            document.getElementById('sesBildirim').style.display = 'block';
+                            setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 2000);
+                        };
+                        // Akışı tamamen kapat (Mikrofon simgesi kaybolur)
+                        currentStream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    mBtn.style.background = "#ea580c";
+                    if(navigator.vibrate) navigator.vibrate(30);
+                } catch(err) {
+                    console.error("Mikrofon hatası:", err);
+                }
+            });
+
+            mBtn.addEventListener('touchend', () => {
+                if(mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                    mBtn.style.background = "#f97316";
+                }
+            });
         }
 
         let acilZ;
