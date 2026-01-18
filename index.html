@@ -111,7 +111,6 @@
         };
 
         function vakaTakibiniBaslat() {
-            // SOS ONALAYI DİNLE (Admin Onayladığında Ekranı Eskiye Döndürür)
             onValue(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), (s) => {
                 const data = s.val();
                 if (data && data.acilDurum === false) {
@@ -168,17 +167,36 @@
         function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
         function konumTakip() { navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true}); }
 
-        let acilZ;
+        // --- ACİL DESTEK TİTREŞİMLİ MEKANİZMA ---
+        let acilZ, titresimInterval;
         const acilBtn = document.getElementById('acilDestekBtn');
+
         acilBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            if(document.body.classList.contains('destek-mod')) return;
+            
+            acilBtn.innerText = "GÖNDERİLİYOR...";
+            let sayac = 0;
+            // 3 saniye içinde her saniye 1 defa titre
+            titresimInterval = setInterval(() => {
+                if(navigator.vibrate) navigator.vibrate(150);
+                sayac++;
+                if(sayac >= 3) clearInterval(titresimInterval);
+            }, 1000);
+
             acilZ = setTimeout(() => {
                 update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { acilDurum: true, durum: "🆘 SOS!" });
                 document.body.classList.add('destek-mod');
                 acilBtn.innerText = "SİNYAL İLETİLDİ!";
+                clearInterval(titresimInterval);
             }, 3000);
         });
-        acilBtn.addEventListener('touchend', () => clearTimeout(acilZ));
+
+        acilBtn.addEventListener('touchend', () => {
+            clearTimeout(acilZ);
+            clearInterval(titresimInterval);
+            if(!document.body.classList.contains('destek-mod')) acilBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
+        });
 
         setInterval(() => {
             const d = new Date();
