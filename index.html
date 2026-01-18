@@ -133,7 +133,6 @@
             });
         }
 
-        // --- GÜNCELLENMİŞ TELSİZ SİSTEMİ (BASINCA MİKROFON AÇILIR) ---
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
             let stream;
@@ -141,35 +140,23 @@
             mBtn.addEventListener('touchstart', async (e) => {
                 e.preventDefault();
                 audioChunks = [];
-                
                 try {
-                    // Butona basıldığı an mikrofonu aktif et
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
-                    
                     mediaRecorder.ondataavailable = (ev) => audioChunks.push(ev.data);
-                    
                     mediaRecorder.onstop = () => {
                         const reader = new FileReader();
                         reader.readAsDataURL(new Blob(audioChunks));
                         reader.onloadend = () => {
-                            push(ref(db, 'telsizMesajlari'), { 
-                                ses: reader.result, 
-                                ekip: currentUser, 
-                                zaman: new Date().toLocaleTimeString() 
-                            });
+                            push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
                             document.getElementById('sesBildirim').style.display = 'block';
                             setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 1500);
                         };
-                        // Kayıt bitince mikrofon donanımını tamamen kapat
                         stream.getTracks().forEach(track => track.stop());
                     };
-
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
-                } catch (err) {
-                    console.error("Mikrofon başlatılamadı:", err);
-                }
+                } catch (err) { console.error(err); }
             });
 
             mBtn.addEventListener('touchend', () => {
@@ -196,17 +183,42 @@
         function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
         function konumTakip() { navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true}); }
 
-        let acilZ;
+        // --- ACİL DESTEK TİTREŞİM SİSTEMİ ---
+        let acilZ, titresimInterval;
         const acilBtn = document.getElementById('acilDestekBtn');
+
         acilBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            if(document.body.classList.contains('destek-mod')) return;
+
+            acilBtn.innerText = "GÖNDERİLİYOR...";
+            
+            // Hemen ilk titreşimi ver ve 1'er saniye arayla toplam 3 kez tekrarla
+            let sayac = 0;
+            const titret = () => {
+                if(navigator.vibrate) navigator.vibrate(200); 
+                sayac++;
+                if(sayac >= 3) clearInterval(titresimInterval);
+            };
+            
+            titret(); // 1. Titreşim (0. saniye)
+            titresimInterval = setInterval(titret, 1000); // 2. ve 3. Titreşimler
+
             acilZ = setTimeout(() => {
                 update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { acilDurum: true, durum: "🆘 SOS!" });
                 document.body.classList.add('destek-mod');
                 acilBtn.innerText = "SİNYAL İLETİLDİ!";
+                clearInterval(titresimInterval);
             }, 3000);
         });
-        acilBtn.addEventListener('touchend', () => clearTimeout(acilZ));
+
+        acilBtn.addEventListener('touchend', () => {
+            clearTimeout(acilZ);
+            clearInterval(titresimInterval);
+            if(!document.body.classList.contains('destek-mod')) {
+                acilBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
+            }
+        });
 
         setInterval(() => {
             const d = new Date();
