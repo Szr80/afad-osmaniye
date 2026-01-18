@@ -8,10 +8,9 @@
     <meta name="theme-color" content="#f97316">
     
     <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":"index.html","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
-    
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
-    <title>Osmaniye AFAD</title>
     
+    <title>Osmaniye AFAD</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
@@ -87,26 +86,13 @@
         let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
-        // PWA VE BİLDİRİM KAYDI (GARANTİLİ YÖNTEM)
+        // BİLDİRİM VE PWA SERVİS KAYDI
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swBlob = new Blob([`
-                    self.addEventListener('install', e => self.skipWaiting());
-                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-                    self.addEventListener('fetch', e => {});
-                    self.addEventListener('push', e => {
-                        const data = e.data ? e.data.json() : {title:'AFAD', body:'Yeni Görev!'};
-                        e.waitUntil(self.registration.showNotification(data.title, {
-                            body: data.body,
-                            icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png'
-                        }));
-                    });
-                `], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log("SW Hata:", err));
+                const swBlob = new Blob([`self.addEventListener('fetch', e => {});`], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob));
             });
         }
-
-        if ("Notification" in window) Notification.requestPermission();
 
         const gecmisCiz = () => {
             document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka"><span class="gecmis-tarih">${v.tarih}</span>${v.metin}</div>`).join('');
@@ -128,35 +114,34 @@
             gecmisCiz();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            document.addEventListener("visibilitychange", () => {
-                update(userRef, { durum: document.hidden ? "ARKA PLANDA" : "HAZIR" });
+            // ARKA PLANDAYKEN BİLDİRİM ATAN VE DURUM GÜNCELLEYEN BLOK
+            onValue(ref(db, 'ortakKanal'), (s) => {
+                const d = s.val();
+                if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaZamani) {
+                    
+                    // ARKA PLAN BİLDİRİMİ
+                    if (Notification.permission === "granted") {
+                        new Notification("OSMANİYE AFAD", { 
+                            body: d.metin, 
+                            icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" 
+                        });
+                    }
+
+                    document.getElementById('vakaMetin').innerText = d.metin;
+                    document.getElementById('vakaButonlar').style.display = 'grid';
+                    vakaSes.loop = true; vakaSes.play().catch(()=>{});
+                    setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
+                    if(navigator.vibrate) navigator.vibrate([400,200,400]);
+                    sonVakaZamani = d.zaman;
+                    localStorage.setItem('sonVakaZamani', sonVakaZamani);
+                }
             });
 
+            // KONUM VE DİĞER FONKSİYONLAR (DEĞİŞMEDİ)
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
                 document.getElementById('konum-durum').style.color = "#22c55e";
             }, null, { enableHighAccuracy: true });
-
-            onValue(ref(db, 'ortakKanal'), (s) => {
-                const d = s.val();
-                if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
-                    if (!sonVakaZamani || d.zaman !== sonVakaZamani) {
-                        if (Notification.permission === "granted") {
-                            new Notification("OSMANİYE AFAD", { 
-                                body: d.metin, 
-                                icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" 
-                            });
-                        }
-                        document.getElementById('vakaMetin').innerText = d.metin;
-                        document.getElementById('vakaButonlar').style.display = 'grid';
-                        vakaSes.loop = true; vakaSes.play().catch(()=>{});
-                        setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
-                        if(navigator.vibrate) navigator.vibrate([400,200,400]);
-                        sonVakaZamani = d.zaman;
-                        localStorage.setItem('sonVakaZamani', sonVakaZamani);
-                    }
-                }
-            });
 
             onValue(ref(db, ".info/connected"), (snap) => {
                 if (snap.val() === true) {
@@ -165,6 +150,7 @@
                 }
             });
 
+            // SOS, MANDAL VE GÖREV TAMAMLAMA (AYNI KALDI)
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
@@ -213,6 +199,7 @@
             document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
             document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
         }, 1000);
+        if ("Notification" in window) Notification.requestPermission();
     </script>
 </body>
 </html>
