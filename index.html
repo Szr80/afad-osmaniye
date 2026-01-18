@@ -15,7 +15,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.5s; }
         
-        /* ÜST PANEL */
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(10px + env(safe-area-inset-top)); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
@@ -24,28 +23,24 @@
         .sistem-aktif { color: #22c55e; font-size: 0.75rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* VAKA ALANI */
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
-        .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
         
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; text-transform: uppercase; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
-        .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
+        .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; }
         
-        /* GEÇMİŞ LİSTESİ */
         .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 10px; }
         #vakaGecmis { display: flex; flex-direction: column; gap: 8px; }
         .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; }
         
-        /* ACİL DESTEK */
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.6s infinite; }
         @keyframes s-flash { 0% { background: #7f1d1d; } 50% { background: #000; } 100% { background: #7f1d1d; } }
 
-        /* ALT PANEL & MANDAL */
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
     </style>
@@ -78,7 +73,7 @@
                 <button class="btn-durum tamamla" onclick="gorevTamamla()">TAMAMLA</button>
             </div>
         </div>
-        <div class="gecmis-baslik">Son 5 Görev</div>
+        <div class="gecmis-baslik">Görev Geçmişi (Son 5)</div>
         <div id="vakaGecmis"></div>
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
@@ -109,11 +104,10 @@
             if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
         };
 
+        // HIZLI ÇIKIŞ - ONAY İSTEMEZ
         window.cikisYap = () => {
-            if(confirm("Çıkış yapılsın mı?")) {
-                const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
-                set(userRef, null).then(() => { localStorage.clear(); location.reload(); });
-            }
+            const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
+            set(userRef, null).then(() => { localStorage.clear(); location.reload(); });
         };
 
         if(currentUser) {
@@ -122,9 +116,7 @@
             gecmisGuncelle();
             
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
-            const connectedRef = ref(db, ".info/connected");
 
-            // ADMIN ONAYLI SOS SIFIRLAMA
             onValue(userRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.acilDurum === false && document.body.classList.contains('destek-mod')) {
@@ -134,7 +126,7 @@
                 }
             });
 
-            onValue(connectedRef, (snap) => {
+            onValue(ref(db, ".info/connected"), (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(userRef).remove();
                     update(userRef, { isim: currentUser, timestamp: Date.now(), acilDurum: false, durum: "HAZIR" });
@@ -144,7 +136,6 @@
             navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true});
             setInterval(() => { update(userRef, { timestamp: Date.now(), enlem: userLat, boylam: userLon }); }, 5000);
 
-            // VAKA VE 6 SANİYE SES DÖNGÜSÜ
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
@@ -156,35 +147,28 @@
                 }
             });
 
-            // ACİL DESTEK SİSTEMİ (3 SANİYE / 3 TİTREŞİM)
+            // SOS - 3 SN / 3 TİTREŞİM
             let acilZ, titresimSayaci;
             const acilBtn = document.getElementById('acilDestekBtn');
-            
             acilBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 let saniye = 0;
-                if(navigator.vibrate) navigator.vibrate(200); // İlk basış titreşimi
-                
+                if(navigator.vibrate) navigator.vibrate(200);
                 titresimSayaci = setInterval(() => {
                     saniye++;
                     if(saniye < 3 && navigator.vibrate) navigator.vibrate(200);
                 }, 1000);
-
                 acilZ = setTimeout(() => {
                     clearInterval(titresimSayaci);
                     update(userRef, { acilDurum: true, durum: "🆘 SOS!", timestamp: Date.now() });
                     document.body.classList.add('destek-mod');
                     acilBtn.innerText = "🚨 SİNYAL İLETİLDİ!";
-                    if(navigator.vibrate) navigator.vibrate([800, 200, 800]); // Final onay titreşimi
+                    if(navigator.vibrate) navigator.vibrate([800, 200, 800]);
                 }, 3000);
             });
+            acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); clearInterval(titresimSayaci); });
 
-            acilBtn.addEventListener('touchend', () => {
-                clearTimeout(acilZ);
-                clearInterval(titresimSayaci);
-            });
-
-            // TELSİZ MANDAL
+            // MANDAL
             const mBtn = document.getElementById('mandalBtn');
             let mediaRecorder, audioChunks = [];
             mBtn.addEventListener('touchstart', async (e) => {
@@ -203,7 +187,7 @@
                     };
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
-                } catch (err) { alert("Mikrofon izni gerekli!"); }
+                } catch (err) { alert("Mikrofon izni!"); }
             });
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
         }
