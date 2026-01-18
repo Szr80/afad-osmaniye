@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -8,7 +9,6 @@
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiI2Y5NzMxNiIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIgfV0KfQ==">
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
-        /* Tasarımlar asla değiştirilmedi */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -108,8 +108,7 @@
                 gecmisGuncelle();
                 telsizHazirla();
                 konumTakip();
-                vakaTakibiniBaslat();
-                acilDurumTakibi(); // Admin onayını dinlemek için eklendi
+                vakaTakibiniBaslat(); // Sadece girişten sonra başlar
                 
                 const r = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
                 onDisconnect(r).remove(); 
@@ -125,19 +124,7 @@
             }
         };
 
-        // ADMIN'DEN GELEN SOS KAPATMA ONAYINI DİNLER
-        function acilDurumTakibi() {
-            onValue(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), (s) => {
-                const d = s.val();
-                // Eğer acilDurum admin tarafından false yapıldıysa ve ekran hala kırmızıysa (destek-mod)
-                if(d && d.acilDurum === false && document.body.classList.contains('destek-mod')) {
-                    document.body.classList.remove('destek-mod');
-                    document.getElementById('acilDestekBtn').innerText = "🆘 ACİL DESTEK (3 SN)";
-                    if(navigator.vibrate) navigator.vibrate(0); // Titreşimi durdur
-                }
-            });
-        }
-
+        // VAKA TAKİBİ FONKSİYONU (GİRİŞ YAPILINCA ÇAĞRILIR)
         function vakaTakibiniBaslat() {
             if(vakaDinleyiciBaslatildi) return;
             vakaDinleyiciBaslatildi = true;
@@ -218,18 +205,9 @@
         const acilBtn = document.getElementById('acilDestekBtn');
         acilBtn.addEventListener('touchstart', (e) => {
             e.preventDefault(); acilBtn.innerText = "GÖNDERİLİYOR...";
-            // Hazırlık titreşimi (hafif)
-            if(navigator.vibrate) navigator.vibrate(100);
-            
             acilZ = setTimeout(() => {
                 update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { acilDurum: true, durum: "🆘 SOS!" });
-                document.body.classList.add('destek-mod'); 
-                acilBtn.innerText = "SİNYAL İLETİLDİ!";
-                
-                // TAM OLARAK 3 DEFA TİTREŞİM (Vibrate, Pause, Vibrate, Pause, Vibrate)
-                if(navigator.vibrate) {
-                    navigator.vibrate([500, 300, 500, 300, 500]); 
-                }
+                document.body.classList.add('destek-mod'); acilBtn.innerText = "SİNYAL İLETİLDİ!";
             }, 3000);
         });
         acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); if(!document.body.classList.contains('destek-mod')) acilBtn.innerText = "🆘 ACİL DESTEK (3 SN)"; });
