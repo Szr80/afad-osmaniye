@@ -8,35 +8,34 @@
     <meta name="theme-color" content="#f97316">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
     <title>Osmaniye AFAD</title>
-    <script>
-        const myManifest = {"name":"Osmaniye AFAD","short_name":"AFAD","start_url":window.location.href,"display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]};
-        const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
-        const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
-    </script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
-        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; position: relative; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; }
-        .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
-        .btn-acil:active { transform: scale(0.98); box-shadow: 0 2px 0 #7f1d1d; }
+        .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; z-index: 10; }
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -20px; }
         
-        /* SOS MODU STİLLERİ */
+        /* ÖZEL ONAY BİLDİRİMİ */
+        #merkezOnayBox { position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #22c55e; color: white; padding: 15px 25px; border-radius: 12px; font-weight: 900; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.5s; z-index: 1000; display: flex; align-items: center; gap: 10px; }
+        #merkezOnayBox.aktif { transform: translateX(-50%) translateY(20px); }
+
+        /* SOS MODU */
         body.sos-modu { background: #b91c1c !important; }
         body.sos-modu .ust-panel, body.sos-modu .alt-panel, body.sos-modu .ana-vaka-kutusu { background: #7f1d1d !important; border-color: #dc2626; }
-        body.sos-modu #ana-baslik { color: white; }
     </style>
 </head>
 <body>
+    <div id="merkezOnayBox">✅ MERKEZ UYARIYI GÖRDÜ</div>
+
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
-            <h2 style="color:#f97316; margin:0 0 15px 0; font-weight:900; text-transform:uppercase;">AFAD GİRİŞ</h2>
-            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; background:#0f172a; color:white; font-weight:bold;">
+            <h2 style="color:#f97316; margin:0 0 15px 0; font-weight:900;">AFAD GİRİŞ</h2>
+            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; background:#0f172a; color:white;">
             <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
         </div>
     </div>
@@ -55,7 +54,7 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="localStorage.clear(); location.reload();" style="color:#ef4444; font-weight:bold; cursor:pointer; padding:10px;">🚪 ÇIKIŞ</div>
+        <div onclick="localStorage.clear(); location.reload();" style="color:#ef4444; font-weight:bold; cursor:pointer;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
         <div style="width:70px;"></div>
     </div>
@@ -80,18 +79,18 @@
             document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // --- SOS MEKANİZMASI ---
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
 
             const startSos = (e) => {
                 if(e) e.preventDefault();
-                sosBtn.innerText = "SİNYAL GÖNDERİLİYOR...";
-                // 3 KEZ KISA TİTREŞİM (BAŞLANGIÇTA)
-                if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+                sosBtn.innerText = "SİNYAL HAZIRLANIYOR...";
+                
+                // TİTREŞİM: 3 Saniye boyunca yavaş ve ritmik (Basınca başlar)
+                // Her 600ms'de bir 200ms titrer (3 saniyeye yayılmış 5 darbe)
+                if(navigator.vibrate) navigator.vibrate([200, 400, 200, 400, 200, 400, 200, 400, 200]);
                 
                 sosTimer = setTimeout(() => {
-                    // 3 SANİYE DOLDUĞUNDA
                     update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false });
                     document.body.classList.add('sos-modu');
                     sosBtn.innerText = "MERKEZ ONAYI BEKLENİYOR...";
@@ -102,41 +101,42 @@
             const stopSos = () => {
                 if (!sosBtn.disabled) {
                     clearTimeout(sosTimer);
+                    if(navigator.vibrate) navigator.vibrate(0);
                     sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
                 }
             };
 
-            // MOBİL VE MASAÜSTÜ İÇİN EVENTLER
             sosBtn.addEventListener('touchstart', startSos);
             sosBtn.addEventListener('touchend', stopSos);
             sosBtn.addEventListener('mousedown', startSos);
             sosBtn.addEventListener('mouseup', stopSos);
 
-            // --- MERKEZ ONAYINI TAKİP ET ---
+            // MERKEZ ONAYINI İZLE VE GÖRSEL PANELİ GÖSTER
             onValue(userRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.onay === true) {
-                    alert("MERKEZ UYARIYI GÖRDÜ");
+                    // 1. Görsel Bildirimi Göster
+                    const box = document.getElementById('merkezOnayBox');
+                    box.classList.add('aktif');
+                    
+                    // 2. Ekranı ve Butonu Sıfırla
                     document.body.classList.remove('sos-modu');
                     sosBtn.disabled = false;
                     sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
-                    // ONAYI SIFIRLA VE DURUMU DÜZELT
-                    update(userRef, { onay: null, acilDurum: false, durum: "HAZIR" });
+                    
+                    // 3. 4 Saniye sonra bildirimi kaldır ve Firebase'i temizle
+                    setTimeout(() => {
+                        box.classList.remove('aktif');
+                        update(userRef, { onay: null, acilDurum: false, durum: "HAZIR" });
+                    }, 4000);
                 }
             });
 
-            // --- KESİNTİSİZ GPS ---
             navigator.geolocation.watchPosition((p) => {
-                update(userRef, { 
-                    lat: p.coords.latitude, 
-                    lng: p.coords.longitude, 
-                    timestamp: Date.now(), 
-                    isim: currentUser 
-                });
+                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
         }
 
-        // SAAT VE TARİH GÜNCELLEME
         setInterval(() => {
             document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
             document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
