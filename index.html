@@ -12,12 +12,17 @@
 
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
+        /* GÖNDERDİĞİN DOSYADAKİ TAM TASARIM */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); padding-top: calc(10px + env(safe-area-inset-top)); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
+        .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px; }
         #personelEtiket { font-size: 0.8rem; color: #f1f5f9; font-weight: bold; text-transform: uppercase; }
+        .sistem-aktif { color: #22c55e; font-size: 0.75rem; font-weight: 900; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
@@ -26,6 +31,11 @@
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
+        
+        .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 10px; }
+        #vakaGecmis { display: flex; flex-direction: column; gap: 8px; }
+        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; }
+        
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
@@ -39,15 +49,15 @@
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
             <h2 style="color:#f97316; margin-top:0; font-weight:900;">AFAD GİRİŞ</h2>
-            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold;">
-            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">BAĞLAN</button>
+            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
+            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">GİRİŞ YAP</button>
         </div>
     </div>
 
     <div class="ust-panel">
         <div class="zaman-satiri"><div id="tarih-ust"></div><div id="saat-ust"></div></div>
         <div id="ana-baslik">OSMANİYE AFAD</div>
-        <div id="personelEtiket">PERSONEL: ...</div>
+        <div class="durum-satiri"><div id="personelEtiket">PERSONEL: ...</div><div class="sistem-aktif">● SİSTEM AKTİF</div></div>
     </div>
 
     <div class="vaka-alani">
@@ -59,6 +69,8 @@
                 <button class="btn-durum tamamla" onclick="gorevTamamla()">GÖREVİ TAMAMLA</button>
             </div>
         </div>
+        <div class="gecmis-baslik">Görev Geçmişi</div>
+        <div id="vakaGecmis"></div>
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
 
@@ -78,7 +90,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // SERVICE WORKER KAYDI (Mobil Uygulama Kurulumu İçin Şart)
+        // SERVICE WORKER (Mobil Uygulama Kurulumu İçin)
         if ('serviceWorker' in navigator) {
             const swCode = "self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request)); });";
             const blob = new Blob([swCode], {type: 'text/javascript'});
@@ -86,6 +98,8 @@
         }
 
         let currentUser = localStorage.getItem('afadUser') || "";
+        const vakaSes = document.getElementById('vakaSes');
+        let vakaListesi = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
         let mediaRecorder, audioChunks = [];
         let userLat = 0, userLon = 0;
 
@@ -97,6 +111,7 @@
         if(currentUser) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
+            gecmisGuncelle();
             vakaTakibi();
             telsizMandal();
             konumTakip();
@@ -120,19 +135,17 @@
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
                     document.getElementById('vakaMetin').innerText = d.metin;
                     document.getElementById('vakaButonlar').style.display = 'grid';
-                    const vs = document.getElementById('vakaSes');
-                    vs.loop = true; vs.play();
-                    setTimeout(() => { vs.loop = false; vs.pause(); }, 6000);
+                    vakaSes.loop = true; vakaSes.play();
+                    setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
                     if(navigator.vibrate) navigator.vibrate([500,200,500]);
                 }
             });
         }
 
-        // --- MİKROFON SADECE BUTONA BASILINCA ÇALIŞIR ---
+        // --- MİKROFON SADECE BUTONA BASILINCA ---
         function telsizMandal() {
             const mBtn = document.getElementById('mandalBtn');
             let stream;
-
             mBtn.addEventListener('touchstart', async (e) => {
                 e.preventDefault();
                 audioChunks = [];
@@ -148,13 +161,12 @@
                             document.getElementById('sesBildirim').style.display = 'block';
                             setTimeout(() => document.getElementById('sesBildirim').style.display = 'none', 1500);
                         };
-                        stream.getTracks().forEach(t => t.stop()); // Mikrofonu kapat
+                        stream.getTracks().forEach(t => t.stop());
                     };
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
                 } catch (err) { alert("Mikrofon izni gerekli!"); }
             });
-
             mBtn.addEventListener('touchend', () => {
                 if (mediaRecorder && mediaRecorder.state !== "inactive") {
                     mediaRecorder.stop();
@@ -184,10 +196,16 @@
 
         window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
         window.gorevTamamla = () => {
+            const txt = document.getElementById('vakaMetin').innerText;
+            vakaListesi.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${txt}`);
+            if(vakaListesi.length > 5) vakaListesi.pop();
+            localStorage.setItem('vakaGecmis', JSON.stringify(vakaListesi));
+            gecmisGuncelle();
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
             durumGuncelle("HAZIR / BOŞTA");
         };
+        function gecmisGuncelle() { document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join(''); }
         function konumTakip() { navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true}); }
         setInterval(() => {
             const d = new Date();
