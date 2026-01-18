@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AFAD SAHA">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+        body { 
+            background: #0f172a; color: white; font-family: sans-serif; text-align: center; 
+            height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; 
+            /* iOS tam ekran için güvenli alan ayarı */
+            padding-top: env(safe-area-inset-top);
+        }
         
         #bildirimKutusu { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 10px 25px; border-radius: 50px; font-weight: 900; font-size: 0.8rem; z-index: 30000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid #166534; }
         
@@ -16,6 +29,7 @@
         .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px; }
         #personelEtiket { font-size: 0.75rem; color: #f1f5f9; font-weight: bold; text-transform: uppercase; }
         .sistem-aktif { color: #22c55e; font-size: 0.7rem; font-weight: 900; animation: blink 2s infinite; }
+        
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
@@ -28,7 +42,6 @@
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
 
-        /* Görev Geçmişi Alanı */
         .gecmis-alan { margin-top: 10px; text-align: left; }
         .gecmis-item { background: #1e293b; padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid #64748b; font-size: 0.8rem; }
         .gecmis-vakit { color: #f97316; font-weight: 900; margin-bottom: 3px; font-size: 0.7rem; }
@@ -53,10 +66,7 @@
     </div>
 
     <div class="ust-panel">
-        <div class="zaman-satiri">
-            <div id="tarih-ust">...</div>
-            <div id="saat-ust">...</div>
-        </div>
+        <div class="zaman-satiri"><div id="tarih-ust">...</div><div id="saat-ust">...</div></div>
         <div id="ana-baslik">OSMANİYE AFAD</div>
         <div class="durum-satiri">
             <div id="personelEtiket">PERSONEL: ...</div>
@@ -73,12 +83,10 @@
                 <button class="btn-durum tamamla" onclick="gorevTamamla()">GÖREVİ TAMAMLA</button>
             </div>
         </div>
-
         <div class="gecmis-alan">
             <small style="color:#94a3b8; font-weight:bold;">🕒 SON GÖREVLER</small>
             <div id="gecmisIcerik"></div>
         </div>
-
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
 
@@ -92,7 +100,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update, goOnline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
@@ -102,7 +110,11 @@
         let vakaGecmisi = JSON.parse(localStorage.getItem('afadGecmis')) || [];
         let mediaRecorder, audioChunks = [];
 
-        // 1. SİSTEM BAŞLATMA
+        // SERVICE WORKER KAYDI (Uygulama gibi eklenme için şart)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Kayıtlı")).catch(e => console.log("Hata:", e));
+        }
+
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
             if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
@@ -112,36 +124,28 @@
             if(currentUser) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
-                gecmisListele();
-                konumTakip();
-                telsizHazirla();
-                sosSistemi();
+                gecmisListele(); konumTakip(); telsizHazirla(); sosSistemi();
                 
-                // Kalp Atışı (Admin için aktiflik sinyali)
                 setInterval(() => {
                     const userKey = currentUser.replace(/\s/g, "_");
                     update(ref(db, 'aktifKullanicilar/' + userKey), { 
-                        isim: currentUser, 
-                        timestamp: Date.now(), 
-                        sonSinyal: new Date().toLocaleTimeString() 
+                        isim: currentUser, timestamp: Date.now(), sonSinyal: new Date().toLocaleTimeString() 
                     });
                 }, 10000);
             }
         };
 
-        // 2. VAKA VE GEÇMİŞ YÖNETİMİ
+        // --- Vaka ve Geçmiş ---
         onValue(ref(db, 'ortakKanal'), (s) => {
             const d = s.val();
             if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
                 document.getElementById('vakaMetin').innerText = d.metin;
                 document.getElementById('vakaButonlar').style.display = 'grid';
-                
                 const vakaSes = document.getElementById('vakaSes');
                 vakaSes.loop = true; vakaSes.play();
                 setTimeout(() => { vakaSes.loop = false; }, 6000);
                 if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
-
-                // Geçmişe Kaydet
+                
                 const yeni = { metin: d.metin, vakit: new Date().toLocaleTimeString(), tarih: new Date().toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'}) };
                 if(vakaGecmisi.length === 0 || vakaGecmisi[0].metin !== yeni.metin) {
                     vakaGecmisi.unshift(yeni);
@@ -160,11 +164,10 @@
                 </div>`).join('');
         }
 
-        // 3. SOS SİSTEMİ (3 SANİYE BASINCA TİTRE VE GÖNDER)
+        // --- SOS (Acil Destek) ---
         function sosSistemi() {
             const acilBtn = document.getElementById('acilDestekBtn');
             let timer, titremeInterval;
-            
             acilBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 timer = setTimeout(() => {
@@ -174,12 +177,8 @@
                     titremeInterval = setInterval(() => { if(navigator.vibrate) navigator.vibrate(200); }, 1000);
                 }, 3000);
             });
-
-            acilBtn.addEventListener('touchend', () => {
-                clearTimeout(timer);
-            });
-
-            // Admin Onayı Gelince Durdur
+            acilBtn.addEventListener('touchend', () => { clearTimeout(timer); });
+            
             const userKey = currentUser.replace(/\s/g, "_");
             onValue(ref(db, 'aktifKullanicilar/' + userKey + '/acilDurum'), (s) => {
                 if(s.val() === false) {
@@ -189,26 +188,23 @@
             });
         }
 
-        // 4. DİĞER FONKSİYONLAR
+        // --- Diğer ---
         window.durumGuncelle = (dur) => {
             const userKey = currentUser.replace(/\s/g, "_");
             update(ref(db, 'aktifKullanicilar/' + userKey), { durum: dur });
         };
-
         window.gorevTamamla = () => {
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
             durumGuncelle("AKTİF");
             document.getElementById('vakaSes').pause();
         };
-
         function konumTakip() {
             navigator.geolocation.watchPosition((p) => {
                 const userKey = currentUser.replace(/\s/g, "_");
                 update(ref(db, 'aktifKullanicilar/' + userKey), { enlem: p.coords.latitude, boylam: p.coords.longitude });
             }, null, { enableHighAccuracy: true });
         }
-
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
             mBtn.addEventListener('touchstart', async (e) => {
@@ -229,7 +225,6 @@
             });
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state === "recording") { mediaRecorder.stop(); mBtn.style.background = "#f97316"; } });
         }
-
         setInterval(() => {
             document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'});
             document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
