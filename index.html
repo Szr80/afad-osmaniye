@@ -16,34 +16,58 @@
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.5s; }
+        body { 
+            background: #0f172a; 
+            color: white; 
+            font-family: sans-serif; 
+            text-align: center; 
+            height: 100vh; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            transition: background 0.5s;
+        }
         
-        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(10px + env(safe-area-inset-top)); }
+        /* Üst Panel - Çentik Koruması */
+        .ust-panel { 
+            background: #1e293b; 
+            padding: 15px; 
+            border-bottom: 5px solid #f97316; 
+            padding-top: calc(10px + env(safe-area-inset-top)); 
+        }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
-        .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px; }
         .sistem-aktif { color: #22c55e; font-size: 0.75rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; }
-        #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; }
         
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; text-transform: uppercase; }
+        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; }
         
-        #vakaGecmis { display: flex; flex-direction: column; gap: 8px; }
-        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; }
+        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; }
         
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.6s infinite; }
         @keyframes s-flash { 0% { background: #7f1d1d; } 50% { background: #000; } 100% { background: #7f1d1d; } }
 
-        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        /* ALT PANEL - TUŞLARDAN KURTARAN KRİTİK AYAR */
+        .alt-panel { 
+            background: #1e293b; 
+            padding: 15px; 
+            border-top: 3px solid #334155; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            /* Alt kısımdaki sanal tuşlar/çizgi için güvenli boşluk ekler */
+            padding-bottom: calc(20px + env(safe-area-inset-bottom)); 
+        }
+        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -10px; }
     </style>
 </head>
 <body>
@@ -59,15 +83,15 @@
     <div class="ust-panel">
         <div class="zaman-satiri"><div id="tarih-ust"></div><div id="saat-ust"></div></div>
         <div id="ana-baslik">OSMANİYE AFAD</div>
-        <div class="durum-satiri">
-            <div id="personelEtiket" style="font-weight:bold;">PERSONEL: ...</div>
+        <div class="durum-satiri" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+            <div id="personelEtiket" style="font-size:0.8rem; font-weight:bold;">PERSONEL: ...</div>
             <div class="sistem-aktif">● SİSTEM AKTİF</div>
         </div>
     </div>
 
     <div class="vaka-alani">
         <div class="ana-vaka-kutusu">
-            <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
+            <div id="vakaMetin" style="font-weight:900;">GÖREV BEKLENİYOR...</div>
             <div class="durum-butonlar" id="vakaButonlar">
                 <button class="btn-durum yoldayim" onclick="durumGuncelle('YOLDAYIM')">Yoldayım</button>
                 <button class="btn-durum olayeri" onclick="durumGuncelle('OLAY YERİNDE')">Olay Yeri</button>
@@ -79,9 +103,9 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="window.cikisYap()" style="color:#ef4444; font-weight:bold; cursor:pointer;">🚪 ÇIKIŞ</div>
+        <div onclick="window.cikisYap()" style="color:#ef4444; font-weight:bold; cursor:pointer; padding:10px;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
-        <div style="width:50px;"></div>
+        <div style="width:70px;"></div>
     </div>
 
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
@@ -113,10 +137,8 @@
             document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
             document.getElementById('vakaGecmis').innerHTML = vakaListesi.map(v => `<div class="gecmis-vaka">${v}</div>`).join('');
             
-            const userPath = 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_");
-            const userRef = ref(db, userPath);
+            const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // ADMIN ONAYI DİNLEME
             onValue(userRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.acilDurum === false && document.body.classList.contains('destek-mod')) {
@@ -126,7 +148,6 @@
                 }
             });
 
-            // BAĞLANTI & OTOMATİK TEMİZLİK
             onValue(ref(db, ".info/connected"), (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(userRef).remove();
@@ -134,7 +155,6 @@
                 }
             });
 
-            // VAKA GELİŞİ
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
@@ -146,17 +166,12 @@
                 }
             });
 
-            // --- SOS SİSTEMİ (3 SN / 3 TİTREŞİM) ---
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                let say = 0;
-                if(navigator.vibrate) navigator.vibrate(150);
-                titresimS = setInterval(() => {
-                    say++;
-                    if(say < 3 && navigator.vibrate) navigator.vibrate(150);
-                }, 1000);
+                let say = 0; if(navigator.vibrate) navigator.vibrate(150);
+                titresimS = setInterval(() => { say++; if(say < 3 && navigator.vibrate) navigator.vibrate(150); }, 1000);
                 acilZ = setTimeout(() => {
                     clearInterval(titresimS);
                     update(userRef, { acilDurum: true, durum: "🆘 SOS!", timestamp: Date.now() });
@@ -167,7 +182,6 @@
             });
             acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); clearInterval(titresimS); });
 
-            // MANDAL
             const mBtn = document.getElementById('mandalBtn');
             let mediaRecorder, audioChunks = [];
             mBtn.addEventListener('touchstart', async (e) => {
@@ -198,7 +212,7 @@
             vakaListesi.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${txt}`);
             if(vakaListesi.length > 5) vakaListesi.pop();
             localStorage.setItem('vakaGecmis', JSON.stringify(vakaListesi));
-            location.reload(); // Temizle ve geçmişi yükle
+            location.reload();
         };
 
         setInterval(() => {
@@ -206,7 +220,6 @@
             document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
         }, 1000);
 
-        // PWA SERVICE WORKER
         if ('serviceWorker' in navigator) {
             const sw = 'data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ID0+IGV2LnJlc3BvbmRXaXRoKGZldGNoKGV2LnJlcXVlc3QpKSk7';
             navigator.serviceWorker.register('data:application/javascript;base64,' + btoa(atob(sw.split(',')[1])));
