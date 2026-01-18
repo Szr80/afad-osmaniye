@@ -6,13 +6,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f97316">
-    
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
-
     <title>Osmaniye AFAD</title>
-    
     <script>
-        // PWA MANIFEST DİNAMİK ENJEKSİYON (Garantili Yöntem)
         const myManifest = {
             "name": "Osmaniye AFAD",
             "short_name": "AFAD",
@@ -20,36 +16,29 @@
             "display": "standalone",
             "background_color": "#0f172a",
             "theme_color": "#f97316",
-            "icons": [{
-                "src": "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any maskable"
-            }]
+            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes": "512x512","type": "image/png","purpose": "any maskable"}]
         };
-        const stringManifest = JSON.stringify(myManifest);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestURL;
-        document.head.appendChild(link);
+        const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
+        const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
     </script>
-
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
-        #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
+        .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; }
+        #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
         .sistem-aktif { color: #22c55e; font-size: 0.75rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
-        .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; }
+        .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; transition: 0.3s; }
+        .vaka-var { border-left-color: #ef4444; background: #450a0a; animation: vakaFlash 1s infinite; }
+        @keyframes vakaFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; }
+        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 12px; border-radius: 10px; border-left: 4px solid #f97316; text-align: left; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; }
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -20px; }
@@ -60,13 +49,14 @@
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
             <h2 style="color:#f97316; margin-top:0; font-weight:900;">AFAD GİRİŞ</h2>
             <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
-            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
+            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">BAŞLAT VE İZİN VER</button>
         </div>
     </div>
 
     <div class="ust-panel">
+        <div class="zaman-satiri"><div id="tarih-ust"></div><div id="saat-ust"></div></div>
         <div id="ana-baslik">Osmaniye AFAD</div>
-        <div style="font-size:0.8rem; font-weight:bold;"><span id="personelEtiket">PERSONEL: ...</span> | <span class="sistem-aktif">● AKTİF</span></div>
+        <div style="font-size:0.8rem; font-weight:bold;"><span id="personelEtiket">...</span> | <span class="sistem-aktif">● SİSTEM AKTİF</span></div>
     </div>
 
     <div class="vaka-alani">
@@ -78,6 +68,7 @@
                 <button class="btn-durum tamamla" onclick="gorevTamamla()">TAMAMLA</button>
             </div>
         </div>
+        <div id="vakaGecmisAlani"></div>
         <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
     </div>
 
@@ -98,31 +89,17 @@
         const db = getDatabase(app);
         
         let currentUser = localStorage.getItem('afadUser') || "";
+        let vakaGecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
         let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
-        // PWA SERVICE WORKER REGISTRATION (BLOB)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swCode = "self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('fetch', e => {});";
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob));
-            });
-        }
-
-        // PWA Yükleme Yakalayıcı (Masaüstü Chrome simgesi için)
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('Yükleme simgesi tetiklendi');
-        });
-
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
-            if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
-        };
-
-        window.cikisYap = () => {
-            const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
-            set(userRef, null).then(() => { localStorage.clear(); location.reload(); });
+            if(name.length > 2) { 
+                localStorage.setItem('afadUser', name); 
+                Notification.requestPermission(); // Bildirim İzni
+                location.reload(); 
+            }
         };
 
         if(currentUser) {
@@ -130,51 +107,69 @@
             document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
+            // BİLDİRİM VE SES MEKANİZMASI (SEZER FİNAL)
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaZamani) {
+                    // Ekranı Guncelle
                     document.getElementById('vakaMetin').innerText = d.metin;
                     document.getElementById('vakaButonlar').style.display = 'grid';
-                    vakaSes.loop = true; vakaSes.play().catch(()=>{});
+                    document.getElementById('vakaKutu').classList.add('vaka-var');
+
+                    // Sesli Alarm (6 Saniye Döngü)
+                    vakaSes.loop = true;
+                    vakaSes.play().catch(() => { console.log("Etkileşim Gerekli"); });
                     setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
-                    if(navigator.vibrate) navigator.vibrate([400,200,400]);
+
+                    // Titreşim
+                    if(navigator.vibrate) navigator.vibrate([500, 300, 500, 300, 500]);
+
+                    // Tarayıcı Bildirimi
+                    if (Notification.permission === "granted") {
+                        new Notification("YENİ AFAD VAKASI!", { body: d.metin, icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" });
+                    }
+
                     sonVakaZamani = d.zaman;
                     localStorage.setItem('sonVakaZamani', sonVakaZamani);
                 }
             });
 
+            // KESİNTİSİZ GPS
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
-            }, null, { enableHighAccuracy: true });
+            }, null, { enableHighAccuracy: true, maximumAge: 0 });
 
-            onValue(ref(db, ".info/connected"), (snap) => {
-                if (snap.val() === true) {
-                    onDisconnect(userRef).remove();
-                    update(userRef, { isim: currentUser, timestamp: Date.now(), acilDurum: false, durum: "HAZIR" });
-                }
-            });
-
-            const mBtn = document.getElementById('mandalBtn');
-            let mediaRecorder, audioChunks = [];
-            mBtn.addEventListener('touchstart', async (e) => {
-                e.preventDefault(); audioChunks = [];
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = ev => audioChunks.push(ev.data);
-                    mediaRecorder.onstop = () => {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(new Blob(audioChunks));
-                        reader.onloadend = () => { push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() }); };
-                        stream.getTracks().forEach(t => t.stop());
-                    };
-                    mediaRecorder.start(); mBtn.style.background = "#ea580c";
-                } catch (err) { alert("Mikrofon hatası!"); }
-            });
-            mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
+            // 3 SANİYE SOS
+            let sosTimer;
+            const sosBtn = document.getElementById('acilDestekBtn');
+            const startSos = () => {
+                sosBtn.innerText = "SİNYAL GÖNDERİLİYOR...";
+                sosTimer = setTimeout(() => {
+                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!" });
+                    sosBtn.innerText = "YARDIM ÇAĞRISI ATILDI!";
+                }, 3000);
+            };
+            const stopSos = () => { clearTimeout(sosTimer); sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)"; };
+            sosBtn.addEventListener('touchstart', startSos); sosBtn.addEventListener('touchend', stopSos);
         }
-        window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
-        window.gorevTamamla = () => { vakaSes.pause(); document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR..."; document.getElementById('vakaButonlar').style.display = 'none'; durumGuncelle("HAZIR"); };
+
+        window.gorevTamamla = () => {
+            vakaSes.pause();
+            document.getElementById('vakaKutu').classList.remove('vaka-var');
+            const txt = document.getElementById('vakaMetin').innerText;
+            vakaGecmis.unshift({ metin: txt, tarih: new Date().toLocaleTimeString() });
+            vakaGecmis = vakaGecmis.slice(0, 5);
+            localStorage.setItem('vakaGecmis', JSON.stringify(vakaGecmis));
+            document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
+            document.getElementById('vakaButonlar').style.display = 'none';
+            update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: "HAZIR" });
+        };
+
+        window.cikisYap = () => { localStorage.clear(); location.reload(); };
+        setInterval(() => {
+            document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
+            document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
+        }, 1000);
     </script>
 </body>
 </html>
