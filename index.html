@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#f97316">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFGQUQgU2FoYSIsCiAgInNob3J0X25hbWUiOiAiQUZBRCIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiI2Y5NzMxNiIsCiAgImljb25zIjogW3sgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZnJlZXBpYy5jb20vNTEyLzkxOTUvOTE5NTkxMC5wbmciLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyIgfV0KfQ==">
-
     <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -22,7 +18,7 @@
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; text-transform: uppercase; }
+        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; text-transform: uppercase; }
         .yoldayim { background: #3b82f6; } .olayeri { background: #eab308; } .tamamla { background: #22c55e; grid-column: span 2; }
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; }
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
@@ -32,7 +28,6 @@
 </head>
 <body>
     <div id="sesBildirim">✅ SES İLETİLDİ</div>
-    
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%;">
             <h2 style="color:#f97316;">AFAD GİRİŞ</h2>
@@ -73,36 +68,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ARKA PLAN BİLDİRİM İZNİ
-        async function bildirimIzniAl() {
-            if ("Notification" in window) {
-                const permission = await Notification.requestPermission();
-                if (permission === "granted") console.log("Bildirim izni alındı.");
-            }
-        }
-
-        // SERVICE WORKER KAYDI
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdwdXNoJywgZSA9PiB7IGNvbnN0IG9wdHMgPSB7IGJvZHk6ICdZRU5JIFZBS0EgR0VMREkhJywgaWNvbjogaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZyZWVwaWMuY29tLzUxMi85MTk1LzkxOTU5MTAucG5nLCB2aWJyYXRlOiBbMjAwLCAxMDAsIDIwMF0gfTsgZS53YWl0VW50aWwoc2VsZi5yZWdpc3RyYXRpb24uc2hvd05vdGlmaWNhdGlvbihfT1NNQU7EsFlFIEFGQURfLCBvcHRzKSk7IH0pOw==');
-        }
-
         let currentUser = localStorage.getItem('afadUser') || "";
+        let userLat = 0, userLon = 0;
 
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
-            if(name.length > 2) { 
-                localStorage.setItem('afadUser', name); 
-                bildirimIzniAl();
-                location.reload(); 
-            }
+            if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
         };
 
         window.cikisYap = () => {
-            if(confirm("Çıkış yapılsın mı?")) {
-                set(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), null).then(() => {
-                    localStorage.clear();
-                    location.reload();
-                });
+            if(confirm("Sistemden çıkış yapılsın mı?")) {
+                const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
+                set(userRef, null).then(() => { localStorage.clear(); location.reload(); });
             }
         };
 
@@ -111,28 +88,46 @@
             document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
             
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
-            onDisconnect(userRef).remove(); // Bağlantı kopunca admin panelinden sil
+            const connectedRef = ref(db, ".info/connected");
 
-            // ARKA PLAN DİNLEME VE BİLDİRİM
+            // --- CANLI DURUM TAKİBİ (KRİTİK GÜNCELLEME) ---
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    // Bağlantı kurulduğunda veriyi yaz ve koparsa silmesi için ayarla
+                    onDisconnect(userRef).remove();
+                    update(userRef, {
+                        isim: currentUser,
+                        durum: "HAZIR",
+                        timestamp: Date.now(),
+                        acilDurum: false
+                    });
+                }
+            });
+
+            // Konum ve zaman damgasını düzenli güncelle (Admin paneli canlılık için)
+            navigator.geolocation.watchPosition(p => { userLat = p.coords.latitude; userLon = p.coords.longitude; }, null, {enableHighAccuracy:true});
+            setInterval(() => {
+                update(userRef, { 
+                    timestamp: Date.now(), 
+                    enlem: userLat, 
+                    boylam: userLon 
+                });
+            }, 5000);
+
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
                     document.getElementById('vakaMetin').innerText = d.metin;
                     document.getElementById('vakaButonlar').style.display = 'grid';
-                    
-                    // Ekran kapalıyken bildirim gönder
-                    if (document.hidden && Notification.permission === "granted") {
-                        new Notification("🚨 YENİ GÖREV!", { body: d.metin, icon: "https://cdn-icons-png.freepik.com/512/9195/9195910.png" });
-                    }
-                    if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+                    if(navigator.vibrate) navigator.vibrate([500,200,500]);
                 }
             });
 
-            // MANDAL SİSTEMİ
+            // MANDAL
             const mBtn = document.getElementById('mandalBtn');
             let mediaRecorder, audioChunks = [], stream;
             mBtn.addEventListener('touchstart', async (e) => {
-                e.preventDefault();
+                e.preventDefault(); audioChunks = [];
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream);
@@ -149,7 +144,7 @@
                     };
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
-                } catch (err) { alert("Mikrofon izni gerekli!"); }
+                } catch (err) { console.error(err); }
             });
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
         }
