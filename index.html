@@ -7,9 +7,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AFAD BİRİM">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
     
-    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png"}]}'>
+    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD Uç Birim","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png"}]}'>
 
     <title>Osmaniye AFAD</title>
     <style>
@@ -18,7 +19,7 @@
         
         /* ÜST PANEL: TARİH VE SAAT */
         .ust-panel { background: #1e293b; padding: 10px 15px; border-bottom: 5px solid #f97316; padding-top: calc(10px + env(safe-area-inset-top)); }
-        .bilgi-satiri { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+        .bilgi-satiri { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
         #ana-baslik { font-size: 1.3rem; color: #f97316; font-weight: 900; margin: 2px 0; }
         
         /* CANLI KONUM VE ÇANAK */
@@ -31,6 +32,7 @@
         .gecmis-baslik { font-size: 0.8rem; font-weight: 900; color: #94a3b8; text-align: left; }
         .kucuk-vaka { background: #1e293b; padding: 10px; border-radius: 10px; font-size: 0.8rem; text-align: left; opacity: 0.8; border-left: 4px solid #334155; margin-bottom: 5px; }
         
+        /* SOS BUTONU */
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; flex-shrink: 0; }
         
         /* ALT PANEL VE TELSİZ MANDALI */
@@ -83,6 +85,15 @@
         <div style="width:50px;"></div>
     </div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            const swCode = "self.addEventListener('fetch', function(e){});";
+            const blob = new Blob([swCode], {type: 'text/javascript'});
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl);
+        }
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, remove, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -91,12 +102,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // SERVICE WORKER KAYDI (PWA İÇİN KRİTİK)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7IH0pOw==');
-        }
-
-        // CANLI SAAT VE TARİH
+        // CANLI SAAT/TARİH PANELİ
         setInterval(() => {
             const simdi = new Date();
             const gunler = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
@@ -118,21 +124,25 @@
 
             onDisconnect(userRef).remove();
             document.getElementById('cikisBtn').onclick = () => {
-                if(confirm("Çıkış yapılsın mı?")) { remove(userRef).then(() => { localStorage.clear(); location.reload(); }); }
+                if(confirm("Sistemden çıkılsın mı?")) { remove(userRef).then(() => { localStorage.clear(); location.reload(); }); }
             };
 
+            // VAKA DİNLEME
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d) { document.getElementById('vakaMetin').innerText = d.metin || "GÖREV BEKLENİYOR..."; if(navigator.vibrate) navigator.vibrate(200); }
             });
 
+            // GEÇMİŞ DİNLEME (GÜN AY YIL SAAT DAKİKA)
             onValue(ref(db, 'vakaGecmis'), (s) => {
                 const liste = document.getElementById('vakaGecmisListe');
                 liste.innerHTML = "";
                 const veriler = s.val();
                 if(veriler) {
                     Object.values(veriler).reverse().slice(1, 6).forEach(v => {
-                        liste.innerHTML += `<div class="kucuk-vaka"><span style="color:#f97316; font-size:0.65rem;">${v.tarih || ''} | ${v.saat || ''}</span><br>${v.metin}</div>`;
+                        const t = v.tarih || new Date().toLocaleDateString('tr-TR');
+                        const s = v.saat || new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+                        liste.innerHTML += `<div class="kucuk-vaka"><span style="color:#f97316; font-size:0.65rem;">${t} | ${s}</span><br>${v.metin}</div>`;
                     });
                 }
             });
@@ -153,11 +163,11 @@
                         audioChunks = [];
                     };
                     mediaRecorder.start();
-                } catch(err) { console.log(err); }
+                } catch(err) { console.log("Mikrofon hatası"); }
             };
             mandal.ontouchend = () => { mandal.classList.remove('active'); if(mediaRecorder) mediaRecorder.stop(); };
 
-            // SOS SİSTEMİ
+            // SOS VE ONAY
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
             const startSos = (e) => {
