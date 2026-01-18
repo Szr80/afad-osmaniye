@@ -9,9 +9,15 @@
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         
         /* ÜST PANEL */
-        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; letter-spacing: 1px; }
-        #personelEtiket { font-size: 0.8rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
+        .ust-panel { background: #1e293b; padding: 12px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.7rem; font-weight: 900; margin-bottom: 5px; }
+        #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 0; letter-spacing: 1px; }
+        .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px; }
+        #personelEtiket { font-size: 0.75rem; color: #f1f5f9; font-weight: bold; text-transform: uppercase; }
+        
+        /* SİSTEM AKTİF ANİMASYONU */
+        .sistem-aktif { color: #22c55e; font-size: 0.7rem; font-weight: 900; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         /* VAKA ALANI */
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
@@ -26,11 +32,11 @@
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
 
         /* GEÇMİŞ */
-        .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 10px; }
-        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; }
+        .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 5px; }
+        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; }
 
         /* ACİL DESTEK */
-        .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.1s; }
+        .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.5s infinite; }
         @keyframes s-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
@@ -50,8 +56,12 @@
     </div>
 
     <div class="ust-panel">
+        <div class="zaman-satiri"><div id="tarih-ust"></div><div id="saat-ust"></div></div>
         <div id="ana-baslik">OSMANİYE AFAD</div>
-        <div id="personelEtiket">PERSONEL: ...</div>
+        <div class="durum-satiri">
+            <div id="personelEtiket">PERSONEL: ...</div>
+            <div class="sistem-aktif">● SİSTEM AKTİF</div>
+        </div>
     </div>
 
     <div class="vaka-alani">
@@ -89,6 +99,13 @@
         let stream;
         const vakaSes = document.getElementById('vakaSes');
 
+        // CANLI SAAT VE TARİH
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('tarih-ust').innerText = d.toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'});
+            document.getElementById('saat-ust').innerText = d.toLocaleTimeString('tr-TR');
+        }, 1000);
+
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
             if(name.length > 2) {
@@ -115,7 +132,6 @@
             onDisconnect(r).remove();
         };
 
-        // BATARYA DOSTU MANDAL SİSTEMİ
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
             mBtn.addEventListener('touchstart', async (e) => {
@@ -131,7 +147,7 @@
                         reader.onloadend = () => {
                             push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
                         };
-                        stream.getTracks().forEach(t => t.stop()); // MİKROFONU KAPAT
+                        stream.getTracks().forEach(t => t.stop());
                     };
                     mediaRecorder.start();
                     mBtn.style.background = "#ea580c";
@@ -147,7 +163,6 @@
             });
         }
 
-        // SOS SİSTEMİ (TİTREŞİM + OTOMATİK SIFIRLAMA)
         function sosSistemi() {
             let acilTimer, titreşimInterval;
             const acilBtn = document.getElementById('acilDestekBtn');
@@ -156,9 +171,7 @@
                 if(document.body.classList.contains('destek-mod')) return;
                 e.preventDefault();
                 acilBtn.innerText = "SİNYAL GÖNDERİLİYOR...";
-                
                 titreşimInterval = setInterval(() => { if(navigator.vibrate) navigator.vibrate(200); }, 1000);
-
                 acilTimer = setTimeout(() => {
                     clearInterval(titreşimInterval);
                     set(ref(db, 'ekipDurum'), { acil: true, isim: currentUser, zaman: new Date().toLocaleTimeString() });
@@ -192,7 +205,6 @@
             let gecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
             gecmis.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${vaka}`);
             localStorage.setItem('vakaGecmis', JSON.stringify(gecmis.slice(0,5)));
-            
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
             durumGuncelle("HAZIR");
