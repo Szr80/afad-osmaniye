@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f97316">
     
-    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":"index.html","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
     
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
     <title>Osmaniye AFAD</title>
@@ -87,10 +87,22 @@
         let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
-        // BİLDİRİM SERVİSİ VE PWA KAYDI
+        // PWA VE BİLDİRİM KAYDI (GARANTİLİ YÖNTEM)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGUgPT4geyB9KTs=');
+                const swBlob = new Blob([`
+                    self.addEventListener('install', e => self.skipWaiting());
+                    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                    self.addEventListener('fetch', e => {});
+                    self.addEventListener('push', e => {
+                        const data = e.data ? e.data.json() : {title:'AFAD', body:'Yeni Görev!'};
+                        e.waitUntil(self.registration.showNotification(data.title, {
+                            body: data.body,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png'
+                        }));
+                    });
+                `], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log("SW Hata:", err));
             });
         }
 
@@ -116,7 +128,6 @@
             gecmisCiz();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // ARKA PLAN DURUMU
             document.addEventListener("visibilitychange", () => {
                 update(userRef, { durum: document.hidden ? "ARKA PLANDA" : "HAZIR" });
             });
@@ -130,9 +141,11 @@
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
                     if (!sonVakaZamani || d.zaman !== sonVakaZamani) {
-                        // ARKA PLANDA BİLDİRİM
                         if (Notification.permission === "granted") {
-                            new Notification("OSMANİYE AFAD", { body: d.metin, icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" });
+                            new Notification("OSMANİYE AFAD", { 
+                                body: d.metin, 
+                                icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" 
+                            });
                         }
                         document.getElementById('vakaMetin').innerText = d.metin;
                         document.getElementById('vakaButonlar').style.display = 'grid';
@@ -152,7 +165,6 @@
                 }
             });
 
-            // SOS VE MANDAL (ORİJİNAL)
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
