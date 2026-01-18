@@ -8,14 +8,15 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* BİLDİRİM KUTUSU */
+        #bildirimKutusu { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 10px 25px; border-radius: 50px; font-weight: 900; font-size: 0.8rem; z-index: 30000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid #166534; }
+
         /* ÜST PANEL */
         .ust-panel { background: #1e293b; padding: 12px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.7rem; font-weight: 900; margin-bottom: 5px; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 0; letter-spacing: 1px; }
         .durum-satiri { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 5px; }
         #personelEtiket { font-size: 0.75rem; color: #f1f5f9; font-weight: bold; text-transform: uppercase; }
-        
-        /* SİSTEM AKTİF ANİMASYONU */
         .sistem-aktif { color: #22c55e; font-size: 0.7rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -24,34 +25,33 @@
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
 
-        /* BUTONLAR */
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.75rem; color: white; cursor: pointer; text-transform: uppercase; }
+        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; color: white; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
 
-        /* GEÇMİŞ */
         .gecmis-baslik { color: #64748b; font-size: 0.7rem; font-weight: 900; text-align: left; margin-left: 5px; text-transform: uppercase; margin-top: 5px; }
         .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #475569; text-align: left; font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; }
 
-        /* ACİL DESTEK */
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.5s infinite; }
         @keyframes s-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         /* ALT PANEL */
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
-        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
     
+    <div id="bildirimKutusu">✅ SES MERKEZE İLETİLDİ</div>
+
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
             <h2 style="color:#f97316; margin-top:0; font-weight:900;">AFAD SAHA</h2>
-            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold;">
-            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">GİRİŞ YAP</button>
+            <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; font-size:1.1rem;">
+            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME GİRİŞ YAP</button>
         </div>
     </div>
 
@@ -79,7 +79,7 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="localStorage.clear(); location.reload();" style="color:#ef4444; font-weight:bold; font-size:0.7rem;">🚪 ÇIKIŞ</div>
+        <div onclick="localStorage.clear(); location.reload();" style="color:#ef4444; font-weight:bold; font-size:0.7rem; cursor:pointer;">🚪 ÇIKIŞ</div>
         <div class="btn-mandal" id="mandalBtn">🎤</div>
         <div style="width:50px;"></div>
     </div>
@@ -99,7 +99,6 @@
         let stream;
         const vakaSes = document.getElementById('vakaSes');
 
-        // CANLI SAAT VE TARİH
         setInterval(() => {
             const d = new Date();
             document.getElementById('tarih-ust').innerText = d.toLocaleDateString('tr-TR', {weekday:'long', day:'2-digit', month:'2-digit'});
@@ -134,19 +133,28 @@
 
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
+            const bildirim = document.getElementById('bildirimKutusu');
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/mp4';
+
             mBtn.addEventListener('touchstart', async (e) => {
                 e.preventDefault();
                 audioChunks = [];
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    mediaRecorder = new MediaRecorder(stream, { mimeType });
+                    mediaRecorder.ondataavailable = (ev) => { if(ev.data.size > 0) audioChunks.push(ev.data); };
                     mediaRecorder.onstop = () => {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(new Blob(audioChunks));
-                        reader.onloadend = () => {
-                            push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() });
-                        };
+                        if(audioChunks.length > 0) {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(new Blob(audioChunks, { type: mimeType }));
+                            reader.onloadend = () => {
+                                push(ref(db, 'telsizMesajlari'), { ses: reader.result, ekip: currentUser, zaman: new Date().toLocaleTimeString() })
+                                .then(() => {
+                                    bildirim.style.display = 'block';
+                                    setTimeout(() => bildirim.style.display = 'none', 2000);
+                                });
+                            };
+                        }
                         stream.getTracks().forEach(t => t.stop());
                     };
                     mediaRecorder.start();
@@ -157,7 +165,7 @@
 
             mBtn.addEventListener('touchend', () => {
                 if(mediaRecorder && mediaRecorder.state === "recording") {
-                    mediaRecorder.stop();
+                    setTimeout(() => { mediaRecorder.stop(); }, 250);
                     mBtn.style.background = "#f97316";
                 }
             });
@@ -209,7 +217,7 @@
             document.getElementById('vakaButonlar').style.display = 'none';
             durumGuncelle("HAZIR");
             gecmisGuncelle();
-            vakaSes.pause();
+            vakaSes.pause(); vakaSes.loop = false;
         };
 
         function gecmisGuncelle() {
