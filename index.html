@@ -7,15 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>OSMANİYE AFAD | KESİNTİSİZ SAHA</title>
+    <title>OSMANİYE AFAD | SAHA</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Bildirim Kutusu */
         #bildirimKutusu { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 10px 25px; border-radius: 50px; font-weight: 900; font-size: 0.8rem; z-index: 30000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid #166534; }
         
-        /* Üst Panel */
         .ust-panel { background: #1e293b; padding: 12px; border-bottom: 5px solid #f97316; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.7rem; font-weight: 900; margin-bottom: 5px; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 0; letter-spacing: 1px; }
@@ -24,22 +22,20 @@
         .sistem-aktif { color: #22c55e; font-size: 0.7rem; font-weight: 900; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* Vaka Alanı */
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.3rem; font-weight: 900; line-height: 1.4; color: #ffffff; }
+        
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; color: white; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; }
         .yoldayim { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .olayeri { background: #eab308; border-bottom: 4px solid #a16207; }
         .tamamla { background: #22c55e; border-bottom: 4px solid #166534; grid-column: span 2; margin-top: 5px; font-size: 0.9rem; }
 
-        /* Acil Butonu */
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; }
         .destek-mod { background: #7f1d1d !important; animation: s-flash 0.5s infinite; }
         @keyframes s-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        /* Alt Panel (Mandal) */
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: space-between; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
     </style>
@@ -51,7 +47,7 @@
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
             <h2 style="color:#f97316; margin:0 0 20px 0; font-weight:900;">AFAD SAHA</h2>
             <input type="text" id="userName" placeholder="AD SOYAD" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; font-size:1.1rem;">
-            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEMİ BAŞLAT</button>
+            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME GİRİŞ YAP</button>
         </div>
     </div>
 
@@ -60,7 +56,7 @@
         <div id="ana-baslik">OSMANİYE AFAD</div>
         <div class="durum-satiri">
             <div id="personelEtiket">PERSONEL: ...</div>
-            <div class="sistem-aktif">● SİSTEM CANLI</div>
+            <div class="sistem-aktif">● SİSTEM ÇEVRİMİÇİ</div>
         </div>
     </div>
 
@@ -69,7 +65,7 @@
             <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
             <div class="durum-butonlar" id="vakaButonlar">
                 <button class="btn-durum yoldayim" onclick="durumGuncelle('YOLDAYIM')">Yoldayım</button>
-                <button class="btn-durum olayeri" onclick="durumGuncelle('OLAY YERİNDE')">Olay Yerinde</button>
+                <button class="btn-durum olayeri" onclick="durumGuncelle('OLAY YERİNDE')">Olay Yeri</button>
                 <button class="btn-durum tamamla" onclick="gorevTamamla()">GÖREVİ TAMAMLA</button>
             </div>
         </div>
@@ -98,18 +94,21 @@
         let mediaRecorder, audioChunks = [];
         const vakaSes = document.getElementById('vakaSes');
 
-        // 1. HER KOŞULDA ÇALIŞTIRMA (WAKE LOCK + HEARTBEAT)
-        async function sistemiZorlaCanliTut() {
+        // 1. CANLI RADAR VE UYANIK TUTMA SİSTEMİ
+        async function sistemiCanliTut() {
             if ('wakeLock' in navigator) {
                 try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
             }
             document.getElementById('heartbeatSound').play().catch(()=>{});
 
+            // 10 saniyede bir Admin paneline "Buradayım" sinyali (Timestamp) gönderir
             setInterval(() => {
                 if(currentUser) {
-                    goOnline(db); // Bağlantıyı her 10 saniyede bir tetikler
+                    goOnline(db);
                     const userKey = currentUser.replace(/\s/g, "_");
                     update(ref(db, 'aktifKullanicilar/' + userKey), {
+                        isim: currentUser,
+                        timestamp: Date.now(), // Admin'in silme kontrolü için kritik
                         sonSinyal: new Date().toLocaleTimeString(),
                         durum: document.visibilityState === 'visible' ? 'AKTİF' : 'ARKA PLAN'
                     });
@@ -127,32 +126,23 @@
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('personelEtiket').innerText = "PERSONEL: " + currentUser.toUpperCase();
                 
-                const userKey = currentUser.replace(/\s/g, "_");
-                update(ref(db, 'aktifKullanicilar/' + userKey), {
-                    isim: currentUser,
-                    durum: "AKTİF",
-                    giris: new Date().toLocaleTimeString()
-                });
-
-                sistemiZorlaCanliTut();
+                sistemiCanliTut();
                 telsizHazirla();
                 konumTakip();
                 sosSistemi();
-                bildirimIzinleri();
+                
+                // Bildirim İzni (PWA)
+                if ('Notification' in window) {
+                    Notification.requestPermission().then(p => {
+                        if(p === 'granted' && 'serviceWorker' in navigator) {
+                            navigator.serviceWorker.register('./sw.js');
+                        }
+                    });
+                }
             }
         };
 
-        async function bildirimIzinleri() {
-            if ('Notification' in window) {
-                const p = await Notification.requestPermission();
-                if (p === 'granted' && 'serviceWorker' in navigator) {
-                    const reg = await navigator.serviceWorker.register('./sw.js');
-                    reg.showNotification("AFAD SAHA", { body: "Sistem aktif, arka planda çalışıyor.", icon: "https://cdn-icons-png.flaticon.com/512/1042/1042680.png", sticky: true, tag: "saha" });
-                }
-            }
-        }
-
-        // TELSİZ SİSTEMİ
+        // --- Telsiz (Sesli Mesaj) ---
         async function telsizHazirla() {
             const mBtn = document.getElementById('mandalBtn');
             const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/mp4';
@@ -178,7 +168,26 @@
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state === "recording") { mediaRecorder.stop(); mBtn.style.background = "#f97316"; } });
         }
 
-        // SOS SİSTEMİ
+        // --- Konum ve Vaka Takibi ---
+        function konumTakip() {
+            navigator.geolocation.watchPosition((p) => {
+                const userKey = currentUser.replace(/\s/g, "_");
+                update(ref(db, 'aktifKullanicilar/' + userKey), { enlem: p.coords.latitude, boylam: p.coords.longitude });
+            }, null, { enableHighAccuracy: true });
+        }
+
+        onValue(ref(db, 'ortakKanal'), (s) => {
+            const d = s.val();
+            if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
+                document.getElementById('vakaMetin').innerText = d.metin;
+                document.getElementById('vakaButonlar').style.display = 'grid';
+                vakaSes.loop = true; vakaSes.play();
+                setTimeout(() => { vakaSes.loop = false; }, 6000);
+                if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+            }
+        });
+
+        // --- SOS ve Durum ---
         function sosSistemi() {
             const acilBtn = document.getElementById('acilDestekBtn');
             let timer;
@@ -192,26 +201,6 @@
             acilBtn.addEventListener('touchend', () => clearTimeout(timer));
             onValue(ref(db, 'ekipDurum'), (s) => { if(!s.val()?.acil) document.body.classList.remove('destek-mod'); });
         }
-
-        // KONUM TAKİBİ
-        function konumTakip() {
-            navigator.geolocation.watchPosition((p) => {
-                const userKey = currentUser.replace(/\s/g, "_");
-                update(ref(db, 'aktifKullanicilar/' + userKey), { enlem: p.coords.latitude, boylam: p.coords.longitude });
-            }, null, { enableHighAccuracy: true });
-        }
-
-        // VAKA DİNLEME
-        onValue(ref(db, 'ortakKanal'), (s) => {
-            const d = s.val();
-            if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
-                document.getElementById('vakaMetin').innerText = d.metin;
-                document.getElementById('vakaButonlar').style.display = 'grid';
-                vakaSes.loop = true; vakaSes.play();
-                setTimeout(() => { vakaSes.loop = false; }, 6000);
-                if(navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
-            }
-        });
 
         window.durumGuncelle = (dur) => {
             const userKey = currentUser.replace(/\s/g, "_");
