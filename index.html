@@ -7,9 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f97316">
     
-    <link rel="manifest" href='data:application/json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":"index.html","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Osmaniye AFAD","short_name":"AFAD","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes":"512x512","type":"image/png"}]}'>
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
-    
+
     <title>Osmaniye AFAD</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -86,11 +86,12 @@
         let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
-        // BİLDİRİM VE PWA SERVİS KAYDI
+        // SERVICE WORKER ZORLAMASI (Uygulama olarak eklenmesi için şart)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swBlob = new Blob([`self.addEventListener('fetch', e => {});`], { type: 'application/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+                const swCode = "self.addEventListener('fetch', function(event) {});";
+                const blob = new Blob([swCode], {type: 'text/javascript'});
+                navigator.serviceWorker.register(URL.createObjectURL(blob));
             });
         }
 
@@ -114,12 +115,12 @@
             gecmisCiz();
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // ARKA PLANDAYKEN BİLDİRİM ATAN VE DURUM GÜNCELLEYEN BLOK
+            // BİLDİRİM MEKANİZMASI
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaZamani) {
                     
-                    // ARKA PLAN BİLDİRİMİ
+                    // Bildirim At
                     if (Notification.permission === "granted") {
                         new Notification("OSMANİYE AFAD", { 
                             body: d.metin, 
@@ -137,7 +138,7 @@
                 }
             });
 
-            // KONUM VE DİĞER FONKSİYONLAR (DEĞİŞMEDİ)
+            // KONUM TAKİBİ
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
                 document.getElementById('konum-durum').style.color = "#22c55e";
@@ -150,7 +151,7 @@
                 }
             });
 
-            // SOS, MANDAL VE GÖREV TAMAMLAMA (AYNI KALDI)
+            // SOS VE MANDAL
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
@@ -158,13 +159,13 @@
                 let say = 0; if(navigator.vibrate) navigator.vibrate(150);
                 titresimS = setInterval(() => { say++; if(say < 3 && navigator.vibrate) navigator.vibrate(150); }, 1000);
                 acilZ = setTimeout(() => {
-                    clearInterval(titresimS);
                     update(userRef, { acilDurum: true, durum: "🆘 SOS!", timestamp: Date.now() });
                     document.body.classList.add('destek-mod');
                     acilBtn.innerText = "SİNYAL İLETİLDİ!";
                 }, 3000);
             });
             acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); clearInterval(titresimS); });
+
             const mBtn = document.getElementById('mandalBtn');
             let mediaRecorder, audioChunks = [];
             mBtn.addEventListener('touchstart', async (e) => {
@@ -184,7 +185,9 @@
             });
             mBtn.addEventListener('touchend', () => { if(mediaRecorder?.state !== "inactive") mediaRecorder.stop(); mBtn.style.background = "#f97316"; });
         }
+
         window.durumGuncelle = (dur) => update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
+        
         window.gorevTamamla = () => {
             vakaSes.pause();
             const txt = document.getElementById('vakaMetin').innerText;
@@ -195,10 +198,12 @@
             document.getElementById('vakaButonlar').style.display = 'none';
             durumGuncelle("HAZIR");
         };
+
         setInterval(() => {
             document.getElementById('tarih-ust').innerText = new Date().toLocaleDateString('tr-TR');
             document.getElementById('saat-ust').innerText = new Date().toLocaleTimeString('tr-TR');
         }, 1000);
+
         if ("Notification" in window) Notification.requestPermission();
     </script>
 </body>
