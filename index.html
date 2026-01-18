@@ -10,14 +10,15 @@
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* ÜST PANEL YENİ DÜZEN */
+        /* ÜST PANEL */
         .ust-panel { background: #1e293b; padding: 15px 10px; border-bottom: 4px solid #f97316; position: relative; }
-        .zaman-satiri { display: flex; justify-content: space-between; padding: 0 15px; color: #94a3b8; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
+        .zaman-satiri { display: flex; justify-content: space-between; padding: 0 15px; color: #94a3b8; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
         #ana-baslik { font-size: 1.6rem; color: #f97316; font-weight: 900; letter-spacing: 1px; margin: 5px 0; }
         
         .status-bar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; color: #64748b; }
         #statusDot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
 
+        /* VAKA ALANI */
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 15px; gap: 12px; overflow-y: auto; }
         .kutu { background: #1e293b; padding: 20px; border-radius: 12px; border-left: 8px solid #f97316; width: 92%; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         #vakaMetin { font-size: 1.4rem; font-weight: bold; line-height: 1.3; margin-top: 8px; }
@@ -45,7 +46,7 @@
 
     <div class="ust-panel">
         <div class="zaman-satiri">
-            <div id="tarih-ust">--/--/----</div>
+            <div id="tarih-ust">--/--/---- -------</div>
             <div id="saat-ust">00:00:00</div>
         </div>
         <div id="ana-baslik">OSMANİYE AFAD UÇ BİRİM</div>
@@ -61,7 +62,7 @@
                 <div style="color:#f97316; font-size:0.65rem; font-weight:800;">● AKTİF VAKA</div>
                 <div id="vakaSayac"></div>
             </div>
-            <div id="vakaMetin">KOMUTA BEKLENİYOR...</div>
+            <div id="vakaMetin">UYGULAMA BEKLENİYOR...</div>
         </div>
 
         <button id="onayBtn" class="btn-onay">VAKA ALINDI ✓</button>
@@ -87,7 +88,6 @@
         const ses = document.getElementById('vakaSes');
         const onayBtn = document.getElementById('onayBtn');
         const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
 
         let vakaGecmisi = [];
         let sonGelenMesaj = "";
@@ -111,10 +111,17 @@
             if (Notification.permission !== "granted") Notification.requestPermission();
         };
 
+        // SAAT VE GÜNLÜ TARİH GÜNCELLEME
         setInterval(() => {
             const simdi = new Date();
+            
+            // Saat formatı
             document.getElementById('saat-ust').innerText = simdi.toLocaleTimeString('tr-TR');
-            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR');
+            
+            // Gün bilgisi eklenmiş tarih formatı (Örn: 18.01.2026 Pazar)
+            const tarihSecenekleri = { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long' };
+            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR', tarihSecenekleri);
+
             if (vakaGelisZamani) {
                 const fark = Math.floor((new Date() - vakaGelisZamani) / 60000);
                 document.getElementById('vakaSayac').innerText = fark > 0 ? fark + " dk önce" : "Az önce";
