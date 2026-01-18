@@ -119,11 +119,11 @@
                     document.getElementById('gecmisListe').innerHTML = listeHtml;
                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
                 } else if (!gercekVakaMi) {
-                    document.getElementById('vakaMetin').innerText = "KOMUTA MERKEZİNDEN BİLGİ BEKLENİYOR...";
+                    document.getElementById('vakaMetin').innerText = "MERKEZDEN GÖREV BEKLENİYOR...";
                     document.getElementById('islemButonlari').style.display = 'none';
                     anaGövde.classList.remove('kritik-mod');
                     clearTimeout(alarmZamanlayici); ses.pause();
-                    document.getElementById('vakaDurumEtiket').innerText = "● SİSTEM AKTİF / GÖREV BEKLENİYOR";
+                    document.getElementById('vakaDurumEtiket').innerText = "● SİSTEM AKTİF ";
                 }
                 sonGelenMesaj = yeniMetin;
             }
