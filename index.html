@@ -42,9 +42,9 @@
         .alt-panel { 
             background: #1e293b; padding: 15px; border-top: 3px solid #334155; 
             display: flex; align-items: center; justify-content: space-between; 
-            padding-bottom: calc(25px + env(safe-area-inset-bottom)); 
+            padding-bottom: calc(30px + env(safe-area-inset-bottom)); 
         }
-        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -15px; }
+        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.3rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -20px; }
     </style>
 </head>
 <body>
@@ -67,8 +67,8 @@
     </div>
 
     <div class="vaka-alani">
-        <div class="ana-vaka-kutusu">
-            <div id="vakaMetin" style="font-weight:900;">GÖREV BEKLENİYOR...</div>
+        <div class="ana-vaka-kutusu" id="vakaKutu">
+            <div id="vakaMetin" style="font-weight:900; font-size:1.2rem;">GÖREV BEKLENİYOR...</div>
             <div class="durum-butonlar" id="vakaButonlar">
                 <button class="btn-durum yoldayim" onclick="durumGuncelle('YOLDAYIM')">Yoldayım</button>
                 <button class="btn-durum olayeri" onclick="durumGuncelle('OLAY YERİNDE')">Olay Yeri</button>
@@ -97,15 +97,14 @@
 
         let currentUser = localStorage.getItem('afadUser') || "";
         let vakaListesi = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
-        let sonVakaID = localStorage.getItem('sonVakaID') || ""; // ID kontrolü
+        
+        // KRİTİK: Son gelen vakanın zamanını hafızada tut
+        let sonVakaZamani = localStorage.getItem('sonVakaZamani') || 0;
         const vakaSes = document.getElementById('vakaSes');
 
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
-            if(name.length > 2) { 
-                localStorage.setItem('afadUser', name); 
-                location.reload(); 
-            }
+            if(name.length > 2) { localStorage.setItem('afadUser', name); location.reload(); }
         };
 
         window.cikisYap = () => {
@@ -120,29 +119,28 @@
             
             const userRef = ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_"));
 
-            // Vaka Dinleme - Akıllı Kontrol
+            // VAKA DİNLEME - KESİN ÇÖZÜM MANTIĞI
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR")) {
-                    // Eğer gelen vakaID eski ID ile aynı değilse (Yeni vaka ise)
-                    if (d.vakaID !== sonVakaID) {
+                    
+                    // Sadece vaka zamanı hafızadakinden büyükse tetikle
+                    if (Number(d.zaman) > Number(sonVakaZamani)) {
                         document.getElementById('vakaMetin').innerText = d.metin;
                         document.getElementById('vakaButonlar').style.display = 'grid';
-                        
+                        document.getElementById('vakaKutu').style.borderLeft = "12px solid #22c55e"; // Yeşil yap
+
                         vakaSes.loop = true;
-                        vakaSes.play().catch(() => {}); // Kullanıcı etkileşimi gerekebilir
+                        vakaSes.play().catch(() => {});
                         setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); }, 6000);
                         if(navigator.vibrate) navigator.vibrate([400,200,400]);
 
-                        // Arka plan bildirimi
-                        if (document.visibilityState !== "visible") {
-                            new Notification("🚨 YENİ GÖREV!", { body: d.metin });
-                        }
+                        // Zaman damgasını güncelle
+                        sonVakaZamani = d.zaman;
                     }
                 }
             });
 
-            // Diğer Firebase Dinlemeleri (SOS vb.)
             onValue(userRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.acilDurum === false && document.body.classList.contains('destek-mod')) {
@@ -158,7 +156,6 @@
                 }
             });
 
-            // SOS - 3 SN / 3 TİTREŞİM
             let acilZ, titresimS;
             const acilBtn = document.getElementById('acilDestekBtn');
             acilBtn.addEventListener('touchstart', (e) => {
@@ -174,7 +171,7 @@
                 }, 3000);
             });
             acilBtn.addEventListener('touchend', () => { clearTimeout(acilZ); clearInterval(titresimS); });
-
+            
             // MANDAL
             const mBtn = document.getElementById('mandalBtn');
             let mediaRecorder, audioChunks = [];
@@ -204,21 +201,17 @@
         window.gorevTamamla = () => {
             const txt = document.getElementById('vakaMetin').innerText;
             
-            // Mevcut vakaID'yi "okundu" olarak kaydet
-            onValue(ref(db, 'ortakKanal'), (s) => {
-                const d = s.val();
-                if(d?.vakaID) {
-                    localStorage.setItem('sonVakaID', d.vakaID);
-                }
-            }, {onlyOnce: true});
+            // Mevcut vakanın zaman damgasını hafızaya işle ki tekrar gelmesin
+            localStorage.setItem('sonVakaZamani', sonVakaZamani);
 
             vakaListesi.unshift(`${new Date().toLocaleTimeString().slice(0,5)} - ${txt}`);
             if(vakaListesi.length > 5) vakaListesi.pop();
             localStorage.setItem('vakaGecmis', JSON.stringify(vakaListesi));
             
-            // Ekranı temizle
+            // Temizle
             document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
             document.getElementById('vakaButonlar').style.display = 'none';
+            document.getElementById('vakaKutu').style.borderLeft = "12px solid #f97316";
             durumGuncelle("HAZIR");
             location.reload();
         };
