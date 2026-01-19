@@ -36,43 +36,42 @@
         .logo-alan { width: 80px; height: 80px; background: #f97316; border-radius: 20px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 0 20px rgba(249,115,22,0.4); }
 
         /* ÜST PANEL */
-        .header { background: #1e293b; padding: env(safe-area-inset-top) 15px 15px; border-bottom: 2px solid #f97316; text-align: center; position: relative; }
-        .ust-bilgi-satiri { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8; font-weight: 800; padding: 0 5px 5px; }
-        .ust-baslik { font-size: 1.1rem; font-weight: 900; color: #f97316; letter-spacing: 1px; margin: 2px 0; }
+        .header { background: #1e293b; padding: env(safe-area-inset-top) 15px 15px; border-bottom: 2px solid #f97316; text-align: center; }
+        .ust-bilgi-satiri { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #94a3b8; font-weight: 800; margin-bottom: 8px; }
+        .btn-ust-cikis { background: #ef4444; border: none; color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; cursor: pointer; }
+        .ust-baslik { font-size: 1.1rem; font-weight: 900; color: #f97316; letter-spacing: 1px; margin: 5px 0; }
         
-        /* YENİ ÇIKIŞ BUTONU (ÜSTTE) */
-        .header-cikis-btn { background: #334155; border: 1px solid #475569; color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        #txtEkipAd { font-size: 0.95rem; font-weight: 900; color: #fff; background: #334155; padding: 4px 15px; border-radius: 12px; display: inline-block; margin-top: 5px; border: 1px solid #475569; }
+        .online-status { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.7rem; color: #22c55e; font-weight: bold; margin-top: 5px; }
+        .dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        .aktif-ekip-paneli { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 5px; }
-        #txtEkipAd { font-size: 0.9rem; font-weight: 900; color: #fff; background: #334155; padding: 3px 15px; border-radius: 10px; border: 1px solid #f97316; }
-        .online-status { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: #22c55e; font-weight: bold; }
-        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: blink 1s infinite; box-shadow: 0 0 5px #22c55e; }
-        @keyframes blink { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
-
-        /* VAKA ALANI */
-        .vaka-kapsayici { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .vaka-kutu { background: #1e293b; border-radius: 25px; padding: 25px; border: 2px solid #334155; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        /* ANA İÇERİK */
+        .vaka-kapsayici { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .vaka-kutu { background: #1e293b; border-radius: 20px; padding: 20px; border: 2px solid #334155; text-align: center; }
         .vaka-kutu.vaka-var { border-color: #ef4444; background: #450a0a; animation: pulse 2s infinite; }
-        #vakaMetin { font-size: 1.25rem; font-weight: 800; color: #f8fafc; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 15px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+        #vakaMetin { font-size: 1.2rem; font-weight: 800; }
 
-        /* ALT PANEL VE TELSİZ */
-        .alt-menu-kapsayici { background: #1e293b; border-top: 2px solid #334155; padding-bottom: env(safe-area-inset-bottom); position: relative; }
-        .durum-ust-bilgi { padding: 10px; font-size: 0.75rem; font-weight: 800; color: #22c55e; text-align: center; border-bottom: 1px solid #334155; background: rgba(34, 197, 94, 0.05); }
+        /* ALT KONTROL PANELİ */
+        .alt-panel { background: #1e293b; border-top: 2px solid #334155; padding-bottom: env(safe-area-inset-bottom); position: relative; }
+        .durum-etiket { padding: 10px; text-align: center; font-size: 0.8rem; font-weight: 900; color: #22c55e; border-bottom: 1px solid #334155; }
         
-        .durum-bar { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .kontrol-butonlari { height: 100px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: relative; }
         
-        .btn-mikrofon { 
-            width: 80px; height: 80px; background: #334155; border-radius: 50%; 
-            border: 6px solid #0f172a; color: white; font-size: 32px; cursor: pointer; 
-            position: absolute; left: 50%; top: -40px; transform: translateX(-50%);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6); z-index: 100; transition: 0.2s;
+        /* TELSİZ BUTONU (MERKEZ) */
+        .btn-telsiz { 
+            width: 85px; height: 85px; background: #334155; border-radius: 50%; 
+            border: 6px solid #0f172a; color: white; font-size: 35px; cursor: pointer; 
+            position: absolute; left: 50%; top: -35px; transform: translateX(-50%);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100;
         }
-        .btn-mikrofon.kayit-var { background: #ef4444; transform: translateX(-50%) scale(1.1); box-shadow: 0 0 20px #ef4444; }
+        .btn-telsiz.kayit-var { background: #ef4444; animation: blink 0.8s infinite; }
 
-        .sos-btn { width: 50px; height: 50px; background: #ef4444; border-radius: 15px; border: none; color: white; font-size: 20px; font-weight: 900; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
-        .placeholder-btn { width: 50px; height: 50px; visibility: hidden; }
+        .sos-btn { width: 60px; height: 60px; background: #ef4444; border-radius: 15px; border: none; color: white; font-weight: 900; font-size: 1rem; cursor: pointer; }
+        .bos-alan { width: 60px; } /* Simetri için sol boşluk */
 
-        .imza-satiri { text-align: center; font-size: 0.65rem; color: #64748b; font-weight: 900; padding: 8px 0; letter-spacing: 0.5px; opacity: 0.8; }
+        .imza-satiri { text-align: center; font-size: 0.65rem; color: #64748b; font-weight: 900; padding: 10px 0; letter-spacing: 1px; }
 
         #acilEkran { position: fixed; inset: 0; background: #ef4444; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
@@ -84,49 +83,44 @@
     <div id="girisEkrani">
         <div class="giris-kart">
             <div class="logo-alan">A</div>
-            <h2 style="color:#f97316; margin:0; font-weight:900;">AFAD SAHA</h2>
-            <p style="color:#94a3b8; font-size:0.8rem; margin-bottom:25px;">UÇ BİRİM SİSTEMİ</p>
-            <input type="text" id="ekipKod" style="width:100%; padding:15px; background:#0f172a; border:2px solid #334155; border-radius:15px; color:white; text-align:center; margin-bottom:15px; font-weight:bold;" placeholder="EKİP ADI">
-            <button onclick="girisYap()" style="width:100%; padding:15px; background:#f97316; border:none; border-radius:15px; color:white; font-weight:900; font-size:1rem; cursor:pointer;">SİSTEME BAĞLAN</button>
+            <h2 style="color:#f97316; margin:0;">AFAD SAHA</h2>
+            <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:20px;">UÇ BİRİM BAĞLANTISI</p>
+            <input type="text" id="ekipKod" style="width:100%; padding:15px; background:#0f172a; border:2px solid #334155; border-radius:15px; color:white; text-align:center; margin-bottom:15px;" placeholder="Ekip İsmi">
+            <button onclick="girisYap()" style="width:100%; padding:15px; background:#f97316; border:none; border-radius:15px; color:white; font-weight:900;">SİSTEME GİRİŞ YAP</button>
             <div class="imza-satiri" style="margin-top:20px;">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
         </div>
     </div>
 
     <div class="header">
         <div class="ust-bilgi-satiri">
-            <span id="txtTarih">00.00.0000 - GÜN</span>
-            <button class="header-cikis-btn" onclick="cikisYap()">ÇIKIŞ</button>
+            <span id="txtTarih">00.00.0000</span>
+            <button class="btn-ust-cikis" onclick="cikisYap()">ÇIKIŞ</button>
             <span id="txtSaat">00:00:00</span>
         </div>
         <div class="ust-baslik">AFAD SAHA EKİBİ UÇ BİRİM</div>
-        <div class="aktif-ekip-paneli">
-            <span id="txtEkipAd">YÜKLENİYOR...</span>
-            <div class="online-status">
-                <div class="dot"></div>
-                ÇEVRİMİÇİ | KONUM AKTİF
-            </div>
-        </div>
+        <div id="txtEkipAd">EKİP TANIMSIZ</div>
+        <div class="online-status"><div class="dot"></div> ÇEVRİMİÇİ | KONUM AKTİF</div>
     </div>
 
     <div class="vaka-kapsayici">
         <div class="vaka-kutu" id="vakaKutu">
-            <div style="font-size:0.7rem; color:#94a3b8; font-weight:900; margin-bottom:12px; letter-spacing:1px;">GÜNCEL GÖREV BİLGİSİ</div>
+            <div style="font-size:0.75rem; color:#94a3b8; font-weight:900; margin-bottom:10px;">GÖREV BİLGİSİ</div>
             <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
-            <div style="display:none; grid-template-columns:1fr 1fr; gap:12px; margin-top:25px;" id="vakaButonlar">
-                <button onclick="durumGuncelle('VAKAYA GİDİYOR')" style="padding:15px; background:#3b82f6; border:none; border-radius:12px; color:white; font-weight:900;">YOLA ÇIKTIK</button>
-                <button onclick="durumGuncelle('OLAY YERİNDE')" style="padding:15px; background:#eab308; border:none; border-radius:12px; color:white; font-weight:900;">VARDIK</button>
+            <div style="display:none; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;" id="vakaButonlar">
+                <button onclick="durumGuncelle('YOLA ÇIKTI')" style="padding:15px; background:#3b82f6; border:none; border-radius:12px; color:white; font-weight:900;">YOLA ÇIKTIK</button>
+                <button onclick="durumGuncelle('VARDI')" style="padding:15px; background:#eab308; border:none; border-radius:12px; color:white; font-weight:900;">VARDIK</button>
                 <button onclick="vakaKapat()" style="padding:15px; background:#22c55e; border:none; border-radius:12px; color:white; font-weight:900; grid-column:span 2;">TAMAMLANDI</button>
             </div>
         </div>
         <div id="vakaGecmisAlani"></div>
     </div>
 
-    <div class="alt-menu-kapsayici">
-        <div class="durum-ust-bilgi">Kullanıcı Durumunuz: <span id="txtEkipDurum">HAZIR / BEKLEMEDE</span></div>
-        <div class="durum-bar">
-            <div class="placeholder-btn"></div>
+    <div class="alt-panel">
+        <div class="durum-etiket">Kullanıcı Durumunuz: <span id="txtEkipDurum">HAZIR / BEKLEMEDE</span></div>
+        <div class="kontrol-butonlari">
+            <div class="bos-alan"></div>
             
-            <button class="btn-mikrofon" id="btnMikrofon">🎤</button>
+            <button class="btn-telsiz" id="btnMikrofon">🎤</button>
             
             <button class="sos-btn" onclick="sosTetikle()">SOS</button>
         </div>
@@ -137,7 +131,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, update, onDisconnect, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, update, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/", storageBucket: "ana-uygulama-f22cb.appspot.com" };
@@ -149,11 +143,7 @@
 
         window.girisYap = () => {
             const kod = document.getElementById('ekipKod').value.trim().toUpperCase();
-            if(kod) { 
-                localStorage.setItem('ekipID', kod); 
-                if ("Notification" in window) Notification.requestPermission();
-                location.reload(); 
-            }
+            if(kod) { localStorage.setItem('ekipID', kod); location.reload(); }
         };
 
         if(ekipID) {
@@ -174,7 +164,7 @@
                     document.getElementById('vakaButonlar').style.display = 'grid';
                     const audio = document.getElementById('vakaSes');
                     audio.play().catch(() => {});
-                    setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 6000); 
+                    setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 6000);
                 } else {
                     document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
                     document.getElementById('vakaKutu').classList.remove('vaka-var');
@@ -182,7 +172,7 @@
                 }
             });
 
-            // BAS-KONUŞ
+            // TELSİZ
             let mediaRecorder;
             let audioChunks = [];
             const btnMikrofon = document.getElementById('btnMikrofon');
@@ -201,7 +191,6 @@
                 };
                 mediaRecorder.start();
                 btnMikrofon.classList.add('kayit-var');
-                if('vibrate' in navigator) navigator.vibrate(50);
             });
             btnMikrofon.addEventListener('touchend', () => { if(mediaRecorder) mediaRecorder.stop(); btnMikrofon.classList.remove('kayit-var'); });
         }
@@ -211,25 +200,14 @@
             document.getElementById('txtEkipDurum').innerText = d;
         };
 
-        window.vakaKapat = () => {
-            document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
-            document.getElementById('vakaKutu').classList.remove('vaka-var');
-            document.getElementById('vakaButonlar').style.display = 'none';
-            durumGuncelle('HAZIR / BEKLEMEDE');
-        };
-
-        window.sosTetikle = () => {
-            update(ref(db, 'aktifKullanicilar/' + ekipID), { acilDurum: true, durum: "🆘 SOS!" });
-            document.getElementById('acilEkran').style.display = 'flex';
-        };
-
-        window.cikisYap = () => { if(confirm("Sistemden çıkış yapılsın mı?")) { localStorage.clear(); location.reload(); } };
+        window.vakaKapat = () => { durumGuncelle('HAZIR / BEKLEMEDE'); };
+        window.sosTetikle = () => { update(ref(db, 'aktifKullanicilar/' + ekipID), { acilDurum: true, durum: "🆘 SOS!" }); document.getElementById('acilEkran').style.display = 'flex'; };
+        window.cikisYap = () => { if(confirm("Çıkış yapılsın mı?")) { localStorage.clear(); location.reload(); } };
 
         setInterval(() => {
             const n = new Date();
-            const g = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
             document.getElementById('txtSaat').innerText = n.toLocaleTimeString('tr-TR');
-            document.getElementById('txtTarih').innerText = `${n.toLocaleDateString('tr-TR')} - ${g[n.getDay()]}`;
+            document.getElementById('txtTarih').innerText = n.toLocaleDateString('tr-TR');
         }, 1000);
     </script>
 </body>
