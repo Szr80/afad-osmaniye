@@ -149,15 +149,19 @@
         let ekipID = localStorage.getItem('ekipID');
         let vakaGecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
 
-        // ARKA PLAN MOTORU (Milim dokunulmadan eklendi)
-        async function bildirimIste() { if ("Notification" in window) await Notification.requestPermission(); }
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
+        // --- ARKA PLAN VE BİLDİRİM MOTORU (GİZLİ) ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
+        }
+        async function bildirimIzni() {
+            if ("Notification" in window && Notification.permission !== "granted") await Notification.requestPermission();
+        }
 
         window.girisYap = () => {
             const kod = document.getElementById('ekipKod').value.trim().toUpperCase();
             if(kod) {
                 localStorage.setItem('ekipID', kod);
-                bildirimIste();
+                bildirimIzni();
                 location.reload();
             }
         };
@@ -165,6 +169,7 @@
         if(ekipID) {
             document.getElementById('girisEkrani').style.display = 'none';
             document.getElementById('txtEkipAd').innerText = ekipID;
+            bildirimIzni();
             
             const userRef = ref(db, 'aktifKullanicilar/' + ekipID);
             
@@ -180,6 +185,7 @@
                 if(data) {
                     const txt = data.metin;
                     document.getElementById('vakaMetin').innerText = txt;
+                    
                     if(txt.includes("GÖREV BEKLENİYOR")) {
                         document.getElementById('vakaKutu').classList.remove('vaka-var');
                         document.getElementById('vakaButonlar').style.display = 'none';
@@ -188,7 +194,8 @@
                         document.getElementById('vakaKutu').classList.add('vaka-var');
                         document.getElementById('vakaButonlar').style.display = 'grid';
                         document.getElementById('vakaSes').play().catch(() => {});
-                        // ARKA PLAN BİLDİRİMİ
+                        
+                        // ARKA PLAN BİLDİRİM TETİKLEYİCİ
                         if (!ilkYukleme && document.visibilityState !== 'visible') {
                             new Notification("🚨 YENİ GÖREV!", { body: txt, icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" });
                             if('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
