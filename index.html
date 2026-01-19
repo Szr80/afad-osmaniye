@@ -150,13 +150,11 @@
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
 
-            // --- BAĞLANTI KONTROLÜ VE OTOMATİK SİLME ---
-            // Giriş yapar yapmaz admin panelinde görünmek için ilk veriyi gönderiyoruz
+            // GİRER GİRMEZ GÖRÜNME VE ÇIKINCA SİLİNME
             update(userRef, { isim: currentUser, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() });
-            
-            // Personel sekmeyi kapattığında veya bağlantısı koptuğunda kaydı Firebase'den otomatik siler
             onDisconnect(userRef).remove();
 
+            // VAKA TAKİBİ
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaID) {
@@ -170,7 +168,7 @@
                 }
             });
 
-            // GÜNCELLENMİŞ MİKROFON SİSTEMİ
+            // MİKROFON SİSTEMİ
             const mandal = document.getElementById('mandalBtn');
             const kayitUyari = document.getElementById('kayit-uyari');
             let mediaRecorder, audioChunks = [], currentStream;
@@ -180,7 +178,6 @@
                 mandal.classList.add('active');
                 kayitUyari.style.display = 'block'; 
                 if(navigator.vibrate) navigator.vibrate(50);
-                
                 try {
                     currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(currentStream);
@@ -190,20 +187,13 @@
                         const reader = new FileReader(); 
                         reader.readAsDataURL(blob);
                         reader.onloadend = () => { 
-                            push(ref(db, 'telsizMesajlari'), { 
-                                ekip: currentUser, 
-                                ses: reader.result, 
-                                zaman: new Date().toLocaleTimeString('tr-TR') 
-                            }); 
+                            push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); 
                         };
                         audioChunks = [];
-                        if(currentStream) {
-                            currentStream.getTracks().forEach(track => track.stop());
-                        }
+                        if(currentStream) currentStream.getTracks().forEach(track => track.stop());
                     };
                     mediaRecorder.start();
                 } catch(err) { 
-                    console.log("Mikrofon izni yok veya hata.");
                     kayitUyari.style.display = 'none';
                     mandal.classList.remove('active');
                 }
@@ -212,11 +202,10 @@
             mandal.ontouchend = () => {
                 mandal.classList.remove('active');
                 kayitUyari.style.display = 'none'; 
-                if(mediaRecorder && mediaRecorder.state !== "inactive") {
-                    mediaRecorder.stop();
-                }
+                if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
             };
 
+            // ACİL DESTEK (SOS)
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
             sosBtn.addEventListener('touchstart', (e) => {
@@ -240,9 +229,17 @@
                 }
             });
 
-            navigator.geolocation.watchPosition((p) => {
-                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
-            }, null, { enableHighAccuracy: true });
+            // KONUM TAKİBİ (DÜZELTİLDİ VE HARİTAYA UYUMLU HALE GETİRİLDİ)
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition((p) => {
+                    update(userRef, { 
+                        lat: p.coords.latitude, 
+                        lng: p.coords.longitude, 
+                        timestamp: Date.now(), 
+                        isim: currentUser 
+                    });
+                }, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+            }
         }
 
         window.durumGuncelle = (durum) => { update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: durum, timestamp: Date.now() }); };
