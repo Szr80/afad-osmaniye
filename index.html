@@ -57,18 +57,7 @@
 
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
         
-        /* ALT PANEL GÜNCELLEMESİ: Navigasyon tuşlarından kurtarma eklendi */
-        .alt-panel { 
-            background: #1e293b; 
-            padding: 15px; 
-            border-top: 3px solid #334155; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            position: relative; 
-            /* env(safe-area-inset-bottom) telefonun kendi navigasyon bar yüksekliğini otomatik ekler */
-            padding-bottom: calc(45px + env(safe-area-inset-bottom)); 
-        }
+        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
         
         .mandal-konteynir { position: relative; display: flex; flex-direction: column; align-items: center; }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -45px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
@@ -78,10 +67,25 @@
         #kayit-uyari::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #dc2626; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
+        /* YENİ ÇIKIŞ BUTONU STİLİ */
+        .btn-cikis-modern {
+            position: absolute; 
+            left: 15px; 
+            bottom: calc(20px + env(safe-area-inset-bottom)); 
+            background: #334155; 
+            color: #ef4444; 
+            border: 1px solid #ef4444;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 900; 
+            font-size: 0.65rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
         #onayBox.aktif { top: 20px; }
 
-        /* İmza alanı navigasyon tuşlarının hemen üzerine sabitlendi */
         .sezer-imza { position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
         .sezer-imza-login { margin-top: 20px; font-size: 0.55rem; color: #94a3b8; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
     </style>
@@ -121,7 +125,7 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="window.cikisYap()" style="position:absolute; left:20px; bottom: calc(25px + env(safe-area-inset-bottom)); color:#ef4444; font-weight:900; cursor:pointer; font-size:0.75rem;">🚪 ÇIKIŞ</div>
+        <button class="btn-cikis-modern" onclick="window.cikisYap()">🚪 ÇIKIŞ</button>
         
         <div class="mandal-konteynir">
             <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
