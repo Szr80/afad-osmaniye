@@ -10,7 +10,7 @@
     <title>Osmaniye AFAD</title>
     
     <script>
-        // PWA Manifest Ayarı
+        // PWA Manifest
         const myManifest = {
             "name": "Osmaniye AFAD",
             "short_name": "AFAD",
@@ -23,23 +23,35 @@
         const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
         const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
 
-        // SERVICE WORKER - WhatsApp Mantığı Arka Plan Motoru
+        // SERVICE WORKER - ARKA PLAN MOTORU
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+            const swCode = `
                 self.addEventListener('install', e => self.skipWaiting());
                 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                
                 self.addEventListener('push', event => {
+                    const data = event.data ? event.data.text() : 'Yeni bir görev emri var!';
                     const options = {
-                        body: '🚨 YENİ ACİL VAKA GELDİ!',
+                        body: data,
                         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-                        vibrate: [500, 200, 500, 200, 500, 200, 500],
+                        badge: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
+                        vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40],
                         requireInteraction: true,
-                        tag: 'acil-vaka',
-                        renotify: true
+                        tag: 'vaka-bildirim',
+                        renotify: true,
+                        data: { url: self.location.origin }
                     };
-                    event.waitUntil(self.registration.showNotification('Osmaniye AFAD', options));
+                    event.waitUntil(self.registration.showNotification('🚨 AFAD ACİL VAKA', options));
                 });
-            `));
+
+                self.addEventListener('notificationclick', event => {
+                    event.notification.close();
+                    event.waitUntil(clients.openWindow('/'));
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl);
         }
     </script>
 
@@ -47,26 +59,21 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Panel Tasarımları */
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
-        .durum-etiket { color: #22c55e; font-size: 0.7rem; font-weight: 900; letter-spacing: 1px; }
+        .p-etiket { color: #22c55e; font-size: 0.75rem; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 5px 10px; border-radius: 20px; display: inline-block; }
 
-        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 15px; overflow-y: auto; }
-        .ana-vaka-kutusu { background: #1e293b; padding: 25px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .vaka-var { background: #450a0a; border-left-color: #ef4444; animation: vakaFlash 1s infinite; }
-        @keyframes vakaFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; }
+        .vaka-karti { background: #1e293b; padding: 25px; border-radius: 25px; border-left: 15px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .vaka-var { background: #450a0a; border-left-color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
-        .btn-acil { background: #dc2626; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; border: none; box-shadow: 0 6px 0 #7f1d1d; }
+        .alt-panel { background: #1e293b; padding: 20px; border-top: 2px solid #334155; position: relative; padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
+        .btn-mandal { width: 100px; height: 100px; border-radius: 50%; background: #f97316; border: 8px solid #0f172a; color: white; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin-top: -70px; z-index: 100; touch-action: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .btn-mandal:active { background: #dc2626; transform: scale(0.9); }
         
-        /* Alt Kontrol Paneli */
-        .alt-panel { background: #1e293b; padding: 20px; border-top: 2px solid #334155; position: relative; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
-        .btn-mandal { width: 95px; height: 95px; border-radius: 50%; background: #f97316; border: 8px solid #0f172a; color: white; font-size: 2.4rem; display: flex; align-items: center; justify-content: center; margin-top: -65px; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.4); touch-action: none; transition: 0.1s; }
-        .btn-mandal:active { transform: scale(0.9); background: #dc2626; }
-        
-        .btn-cikis { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; border: 2px solid #ef4444; color: #ef4444; font-size: 1.2rem; position: absolute; left: 20px; bottom: calc(30px + env(safe-area-inset-bottom)); }
-
-        .sezer-imza { position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); font-size: 0.6rem; color: #475569; width: 100%; font-weight: bold; left: 0; }
+        .btn-cikis { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; border: 2px solid #ef4444; color: #ef4444; position: absolute; left: 25px; bottom: calc(35px + env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: center; }
+        .sezer-imza { position: absolute; bottom: calc(8px + env(safe-area-inset-bottom)); font-size: 0.65rem; color: #475569; width: 100%; font-weight: bold; left:0; letter-spacing: 1px; }
         
         #loginOverlay { position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center; }
     </style>
@@ -74,38 +81,33 @@
 <body>
 
     <div id="loginOverlay">
-        <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
-            <h2 style="color:#f97316; margin-top:0;">PERSONEL GİRİŞİ</h2>
-            <input type="text" id="userName" placeholder="ADINIZ SOYADINIZ" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; text-align:center; font-weight:bold; background:#0f172a; color:white; border:1px solid #334155;">
-            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900; cursor:pointer;">SİSTEME BAĞLAN</button>
+        <div style="background:#1e293b; padding:40px; border-radius:30px; border:3px solid #f97316; width:90%; max-width:380px;">
+            <h2 style="color:#f97316; margin-bottom:20px;">AFAD SİSTEMİ</h2>
+            <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:18px; margin-bottom:20px; border-radius:12px; text-align:center; font-weight:bold; background:#0f172a; color:white; border:1px solid #475569; font-size:1rem;">
+            <button onclick="sistemiAc()" style="width:100%; padding:18px; background:#f97316; color:white; border:none; border-radius:12px; font-weight:900; font-size:1.1rem; cursor:pointer;">GİRİŞ YAP</button>
         </div>
     </div>
 
     <div class="ust-panel">
         <div id="ana-baslik">Osmaniye AFAD</div>
-        <div class="durum-etiket" id="pAd">BAĞLANTI BEKLENİYOR...</div>
+        <div class="p-etiket" id="pAd">SİSTEME BAĞLANILIYOR...</div>
     </div>
 
     <div class="vaka-alani">
-        <div class="ana-vaka-kutusu" id="vakaKutu">
-            <div id="vakaMetin" style="font-weight:900; font-size:1.2rem; color:#94a3b8;">GÖREV BEKLENİYOR...</div>
+        <div class="vaka-karti" id="vakaKutu">
+            <div id="vakaMetin" style="font-weight:900; font-size:1.2rem; color:#94a3b8; line-height:1.4;">GÖREV BEKLENİYOR...</div>
         </div>
-        
-        <div id="gecmisListe" style="text-align:left; font-size:0.8rem; color:#64748b;"></div>
-
-        <button id="acilDestekBtn" class="btn-acil">🆘 ACİL DESTEK (SOS)</button>
+        <button id="sosBtn" style="background:#dc2626; color:white; padding:22px; border-radius:20px; font-weight:900; width:100%; margin-top:auto; border:none; box-shadow: 0 8px 0 #7f1d1d; font-size:1.2rem;">🆘 ACİL DESTEK</button>
     </div>
 
     <div class="alt-panel">
         <button class="btn-cikis" onclick="window.cikisYap()">🚪</button>
-        <div style="display:flex; justify-content:center;">
-            <div class="btn-mandal" id="mandalBtn">🎤</div>
-        </div>
+        <div style="display:flex; justify-content:center;"><div class="btn-mandal" id="mandalBtn">🎤</div></div>
         <div class="sezer-imza">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
     </div>
 
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" loop></audio>
-    <audio id="keepAliveAudio" loop src="https://github.com/anars/blank-audio/raw/master/10-minutes-of-silence.mp3"></audio>
+    <audio id="keepAlive" loop src="https://raw.githubusercontent.com/anars/blank-audio/master/250-milliseconds-of-silence.mp3"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -118,7 +120,7 @@
         let currentUser = localStorage.getItem('afadUser') || "";
         let sonVakaID = ""; 
         const vakaSes = document.getElementById('vakaSes');
-        const keepAliveAudio = document.getElementById('keepAliveAudio');
+        const keepAlive = document.getElementById('keepAlive');
 
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
@@ -131,81 +133,68 @@
 
         if(currentUser) {
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('pAd').innerText = "🛰️ " + currentUser.toUpperCase() + " | ÇEVRİMİÇİ";
+            document.getElementById('pAd').innerText = "🛰️ PERSONEL: " + currentUser.toUpperCase();
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
             onDisconnect(userRef).remove();
 
-            // WhatsApp Stili: Arka planda uyanık tutma
+            // ARKA PLAN KİLİDİ (Ekrana dokunulduğu an başlar)
             const wakeUp = async () => {
-                try { 
-                    if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-                    keepAliveAudio.play(); 
-                } catch(e) {}
+                keepAlive.play();
+                if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
             };
-            document.addEventListener('touchstart', wakeUp, {once: true});
+            document.body.addEventListener('touchstart', wakeUp, {once: true});
 
-            // KONUM TAKİBİ (Sürekli)
+            // KONUM TAKİBİ
             navigator.geolocation.watchPosition((p) => {
-                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, lastSeen: Date.now(), isim: currentUser, durum: "AKTİF" });
+                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, ts: Date.now(), isim: currentUser, durum: "AKTİF" });
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
 
-            // VAKA DİNLEME (WhatsApp Bildirim Mantığı)
+            // VAKA DİNLEME VE ÜSTTEN BİLDİRİM
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaID) {
+                    
+                    // Üstten Push Bildirim At (Uygulama arka plandaysa)
                     if (Notification.permission === "granted") {
-                        new Notification("🚨 AFAD: ACİL GÖREV!", { 
-                            body: d.metin, 
-                            icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-                            requireInteraction: true // Kullanıcı kapatana kadar gitmez
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification('🚨 AFAD ACİL GÖREV', {
+                                body: d.metin,
+                                icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
+                                requireInteraction: true,
+                                vibrate: [500, 200, 500],
+                                tag: 'vaka-' + d.zaman
+                            });
                         });
                     }
+
                     document.getElementById('vakaMetin').innerText = d.metin;
                     document.getElementById('vakaMetin').style.color = "white";
                     document.getElementById('vakaKutu').classList.add('vaka-var');
+                    
                     vakaSes.play().catch(() => {});
                     if(navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
                     sonVakaID = d.zaman;
                 }
             });
 
-            // BAS-KONUŞ (Sadece Basınca Aktif)
+            // TELSİZ SİSTEMİ
             const mandal = document.getElementById('mandalBtn');
-            let mediaRecorder, chunks = [], stream;
-            
-            mandal.addEventListener('touchstart', async (e) => {
+            let mediaRecorder, chunks = [];
+            mandal.ontouchstart = async (e) => {
                 e.preventDefault();
-                if(navigator.vibrate) navigator.vibrate(50);
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        const r = new FileReader(); r.readAsDataURL(blob);
-                        r.onloadend = () => push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: r.result, zaman: new Date().toLocaleTimeString() });
-                        chunks = []; stream.getTracks().forEach(t => t.stop());
-                    };
-                    mediaRecorder.start();
-                } catch(e) { alert("Mikrofon izni gerekli!"); }
-            });
-
-            mandal.addEventListener('touchend', () => {
-                if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-            });
-
-            // SOS Butonu
-            let sosTimer;
-            const sosBtn = document.getElementById('acilDestekBtn');
-            sosBtn.ontouchstart = () => {
-                sosTimer = setTimeout(() => {
-                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM İSTİYOR!" });
-                    sosBtn.innerText = "YARDIM ÇAĞRISI GÖNDERİLDİ!";
-                    if(navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
-                }, 3000);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const r = new FileReader(); r.readAsDataURL(blob);
+                    r.onloadend = () => push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: r.result, zaman: Date.now() });
+                    chunks = []; stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
             };
-            sosBtn.ontouchend = () => clearTimeout(sosTimer);
+            mandal.ontouchend = () => { if(mediaRecorder) mediaRecorder.stop(); };
         }
 
         window.cikisYap = () => { localStorage.clear(); location.reload(); };
