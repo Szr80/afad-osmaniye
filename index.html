@@ -27,7 +27,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
         
-        /* ACİL DURUM MODU */
         body.acil-mod { background: #7f1d1d !important; }
         body.acil-mod .ust-panel, body.acil-mod .ana-vaka-kutusu, body.acil-mod .alt-panel { background: #450a0a !important; border-color: #ef4444 !important; }
 
@@ -58,9 +57,8 @@
 
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
         
-        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
+        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(35px + env(safe-area-inset-bottom)); }
         
-        /* TELSİZ MANDAL VE KAYIT UYARISI */
         .mandal-konteynir { position: relative; display: flex; flex-direction: column; align-items: center; }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -40px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
         .btn-mandal.active { background: #dc2626; transform: scale(0.95); }
@@ -71,6 +69,9 @@
 
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
         #onayBox.aktif { top: 20px; }
+
+        /* SEZER ÇALT İMZA STİLİ */
+        .sezer-imza { position: absolute; bottom: 8px; font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -113,6 +114,8 @@
             <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
             <div class="btn-mandal" id="mandalBtn">🎤</div>
         </div>
+
+        <div class="sezer-imza">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
     </div>
 
     <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
@@ -142,7 +145,6 @@
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
             onDisconnect(userRef).remove();
 
-            // VAKA & SİREN (6 SANİYE DÖNGÜSÜ)
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaID) {
@@ -156,7 +158,6 @@
                 }
             });
 
-            // TELSİZ MANDALI VE GÖRSEL UYARI SİSTEMİ
             const mandal = document.getElementById('mandalBtn');
             const kayitUyari = document.getElementById('kayit-uyari');
             let mediaRecorder, audioChunks = [];
@@ -178,7 +179,7 @@
                         audioChunks = [];
                     };
                     mediaRecorder.start();
-                } catch(err) { console.log("Mikrofon hatası."); }
+                } catch(err) { console.log("Hata"); }
             };
 
             mandal.ontouchend = () => {
@@ -187,7 +188,6 @@
                 if(mediaRecorder) mediaRecorder.stop();
             };
 
-            // ACİL DESTEK TİTREŞİM & KIRMIZI MOD
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
             sosBtn.addEventListener('touchstart', (e) => {
@@ -201,7 +201,6 @@
             });
             sosBtn.addEventListener('touchend', () => { if(!sosBtn.disabled){ clearTimeout(sosTimer); if(navigator.vibrate) navigator.vibrate(0); } });
 
-            // MERKEZ ONAYI DİNLEME
             onValue(userRef, (s) => {
                 const d = s.val();
                 if(d?.onay === true) {
@@ -212,7 +211,6 @@
                 }
             });
 
-            // CANLI GPS
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
             }, null, { enableHighAccuracy: true });
