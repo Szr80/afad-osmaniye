@@ -128,7 +128,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
@@ -150,7 +150,8 @@
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
 
-            // GİRER GİRMEZ GÖRÜNME VE ÇIKINCA SİLİNME
+            // GİRER GİRMEZ KAYIT VE OTOMATİK SİLME (onDisconnect)
+            // Önce temel veriyi yazıyoruz
             update(userRef, { isim: currentUser, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() });
             onDisconnect(userRef).remove();
 
@@ -229,16 +230,30 @@
                 }
             });
 
-            // KONUM TAKİBİ (DÜZELTİLDİ VE HARİTAYA UYUMLU HALE GETİRİLDİ)
+            // KONUM TAKİBİ - EN SAĞLAM VERSİYON
+            function updateLocation(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                update(userRef, {
+                    lat: lat,
+                    lng: lng,
+                    timestamp: Date.now(),
+                    isim: currentUser
+                });
+            }
+
             if ("geolocation" in navigator) {
-                navigator.geolocation.watchPosition((p) => {
-                    update(userRef, { 
-                        lat: p.coords.latitude, 
-                        lng: p.coords.longitude, 
-                        timestamp: Date.now(), 
-                        isim: currentUser 
-                    });
-                }, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+                // Hem watchPosition hem de periyodik kontrol ile konumun gitmesini garantiye alıyoruz
+                navigator.geolocation.watchPosition(updateLocation, (err) => console.log(err), {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000
+                });
+                
+                // WatchPosition bazen uykuya geçerse diye her 10 saniyede bir manuel tetik
+                setInterval(() => {
+                    navigator.geolocation.getCurrentPosition(updateLocation, null, { enableHighAccuracy: true });
+                }, 10000);
             }
         }
 
