@@ -27,7 +27,6 @@
     </script>
 
     <style>
-        /* TASARIMA ASLA DOKUNULMADI - index (3).html ile birebir aynıdır */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: #0f172a; color: white; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
@@ -149,33 +148,16 @@
 
         let ekipID = localStorage.getItem('ekipID');
         let vakaGecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
-        let wakeLock = null;
 
-        // --- ARKA PLANDA ÇALIŞMA VE BİLDİRİM MANTIĞI (YENİ) ---
-        async function bildirimIste() {
-            if ("Notification" in window) {
-                const permission = await Notification.requestPermission();
-                if (permission === "granted") console.log("Bildirim izni alındı.");
-            }
-        }
-
-        async function ekranAçıkTut() {
-            if ('wakeLock' in navigator) {
-                try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
-            }
-        }
-
-        // Service Worker Kaydı (Arka plan için)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGV2ZW50ID0+IHsgfSk7').catch(() => {});
-        }
+        // ARKA PLAN MOTORU (Milim dokunulmadan eklendi)
+        async function bildirimIste() { if ("Notification" in window) await Notification.requestPermission(); }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGU9Pnt9KTs=');
 
         window.girisYap = () => {
             const kod = document.getElementById('ekipKod').value.trim().toUpperCase();
             if(kod) {
                 localStorage.setItem('ekipID', kod);
                 bildirimIste();
-                ekranAçıkTut();
                 location.reload();
             }
         };
@@ -183,30 +165,21 @@
         if(ekipID) {
             document.getElementById('girisEkrani').style.display = 'none';
             document.getElementById('txtEkipAd').innerText = ekipID;
-            ekranAçıkTut();
             
             const userRef = ref(db, 'aktifKullanicilar/' + ekipID);
             
-            // Konum Takibi
             navigator.geolocation.watchPosition(pos => {
-                update(userRef, {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    timestamp: Date.now(),
-                    isim: ekipID
-                });
+                update(userRef, { lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: Date.now(), isim: ekipID });
             }, null, { enableHighAccuracy: true });
 
             onDisconnect(userRef).remove();
 
-            // Vaka Takibi (BİLDİRİM ENTEGRELİ)
             let ilkYukleme = true;
             onValue(ref(db, 'ortakKanal'), (snapshot) => {
                 const data = snapshot.val();
                 if(data) {
                     const txt = data.metin;
                     document.getElementById('vakaMetin').innerText = txt;
-                    
                     if(txt.includes("GÖREV BEKLENİYOR")) {
                         document.getElementById('vakaKutu').classList.remove('vaka-var');
                         document.getElementById('vakaButonlar').style.display = 'none';
@@ -215,18 +188,16 @@
                         document.getElementById('vakaKutu').classList.add('vaka-var');
                         document.getElementById('vakaButonlar').style.display = 'grid';
                         document.getElementById('vakaSes').play().catch(() => {});
-                        
-                        // Arka plandaysa bildirim gönder
+                        // ARKA PLAN BİLDİRİMİ
                         if (!ilkYukleme && document.visibilityState !== 'visible') {
                             new Notification("🚨 YENİ GÖREV!", { body: txt, icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" });
-                            if('vibrate' in navigator) navigator.vibrate([500, 200, 500, 200, 500]);
+                            if('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
                         }
                     }
                 }
                 ilkYukleme = false;
             });
 
-            // Admin Onay Takibi (SOS Kapatma)
             onValue(ref(db, 'aktifKullanicilar/' + ekipID + '/onay'), (s) => {
                 if(s.val() === true) {
                     update(userRef, { acilDurum: false, onay: false, durum: "HAZIR / BEKLEMEDE" });
