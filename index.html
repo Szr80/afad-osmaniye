@@ -70,17 +70,18 @@
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
         #onayBox.aktif { top: 20px; }
 
-        /* SEZER ÇALT İMZA STİLİ */
         .sezer-imza { position: absolute; bottom: 8px; font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
+        .sezer-imza-login { margin-top: 20px; font-size: 0.55rem; color: #94a3b8; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <div id="onayBox">✅ MERKEZ UYARIYI GÖRDÜ</div>
 
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
-        <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px;">
+        <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px; display:flex; flex-direction:column; align-items:center;">
             <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
             <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
+            <div class="sezer-imza-login">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
         </div>
     </div>
 
