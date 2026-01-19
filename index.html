@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -165,7 +164,6 @@
                 }
             });
 
-            // GÜNCELLENMİŞ MİKROFON SİSTEMİ
             const mandal = document.getElementById('mandalBtn');
             const kayitUyari = document.getElementById('kayit-uyari');
             let mediaRecorder, audioChunks = [], currentStream;
@@ -177,7 +175,6 @@
                 if(navigator.vibrate) navigator.vibrate(50);
                 
                 try {
-                    // Mikrofonu sadece basıldığında aç
                     currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(currentStream);
                     mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
@@ -193,14 +190,12 @@
                             }); 
                         };
                         audioChunks = [];
-                        // MİKROFONU TAMAMEN KAPAT (Dinlemeyi sonlandır)
                         if(currentStream) {
                             currentStream.getTracks().forEach(track => track.stop());
                         }
                     };
                     mediaRecorder.start();
                 } catch(err) { 
-                    console.log("Mikrofon izni yok veya hata.");
                     kayitUyari.style.display = 'none';
                     mandal.classList.remove('active');
                 }
@@ -214,7 +209,6 @@
                 }
             };
 
-            // SOS VE DİĞER FONKSİYONLAR AYNI KALDI
             let sosTimer;
             const sosBtn = document.getElementById('acilDestekBtn');
             sosBtn.addEventListener('touchstart', (e) => {
@@ -239,7 +233,12 @@
             });
 
             navigator.geolocation.watchPosition((p) => {
-                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
+                update(userRef, { 
+                    lat: p.coords.latitude, 
+                    lng: p.coords.longitude, 
+                    timestamp: Date.now(), // Admin tarafı burayı kontrol eder
+                    isim: currentUser 
+                });
             }, null, { enableHighAccuracy: true });
         }
 
