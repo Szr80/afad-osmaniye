@@ -10,7 +10,7 @@
     <title>Osmaniye AFAD</title>
     
     <script>
-        // PWA Manifest
+        // PWA MANIFEST
         const myManifest = {
             "name": "Osmaniye AFAD",
             "short_name": "AFAD",
@@ -23,58 +23,39 @@
         const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
         const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
 
-        // SERVICE WORKER - ARKA PLAN MOTORU
+        // AGRESİF SERVICE WORKER (WhatsApp Modu)
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', e => self.skipWaiting());
                 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-                
                 self.addEventListener('push', event => {
-                    const data = event.data ? event.data.text() : 'Yeni bir görev emri var!';
                     const options = {
-                        body: data,
+                        body: '🚨 ACİL VAKA GELDİ! Kontrol Ediniz.',
                         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-                        badge: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-                        vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40],
+                        vibrate: [500, 200, 500, 200, 500],
                         requireInteraction: true,
-                        tag: 'vaka-bildirim',
-                        renotify: true,
-                        data: { url: self.location.origin }
+                        tag: 'vaka-bildirim'
                     };
-                    event.waitUntil(self.registration.showNotification('🚨 AFAD ACİL VAKA', options));
-                });
-
-                self.addEventListener('notificationclick', event => {
-                    event.notification.close();
-                    event.waitUntil(clients.openWindow('/'));
+                    event.waitUntil(self.registration.showNotification('AFAD', options));
                 });
             `;
             const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl);
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob));
         }
     </script>
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
-        
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
-        .p-etiket { color: #22c55e; font-size: 0.75rem; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 5px 10px; border-radius: 20px; display: inline-block; }
-
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; }
-        .vaka-karti { background: #1e293b; padding: 25px; border-radius: 25px; border-left: 15px solid #f97316; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .vaka-karti { background: #1e293b; padding: 25px; border-radius: 25px; border-left: 15px solid #f97316; text-align: left; }
         .vaka-var { background: #450a0a; border-left-color: #ef4444; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-
         .alt-panel { background: #1e293b; padding: 20px; border-top: 2px solid #334155; position: relative; padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
-        .btn-mandal { width: 100px; height: 100px; border-radius: 50%; background: #f97316; border: 8px solid #0f172a; color: white; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin-top: -70px; z-index: 100; touch-action: none; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .btn-mandal:active { background: #dc2626; transform: scale(0.9); }
-        
-        .btn-cikis { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; border: 2px solid #ef4444; color: #ef4444; position: absolute; left: 25px; bottom: calc(35px + env(safe-area-inset-bottom)); display: flex; align-items: center; justify-content: center; }
-        .sezer-imza { position: absolute; bottom: calc(8px + env(safe-area-inset-bottom)); font-size: 0.65rem; color: #475569; width: 100%; font-weight: bold; left:0; letter-spacing: 1px; }
-        
+        .btn-mandal { width: 100px; height: 100px; border-radius: 50%; background: #f97316; border: 8px solid #0f172a; color: white; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin-top: -70px; z-index: 100; touch-action: none; }
+        .sezer-imza { position: absolute; bottom: calc(8px + env(safe-area-inset-bottom)); font-size: 0.65rem; color: #475569; width: 100%; font-weight: bold; left:0; }
         #loginOverlay { position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
@@ -82,26 +63,25 @@
 
     <div id="loginOverlay">
         <div style="background:#1e293b; padding:40px; border-radius:30px; border:3px solid #f97316; width:90%; max-width:380px;">
-            <h2 style="color:#f97316; margin-bottom:20px;">AFAD SİSTEMİ</h2>
-            <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:18px; margin-bottom:20px; border-radius:12px; text-align:center; font-weight:bold; background:#0f172a; color:white; border:1px solid #475569; font-size:1rem;">
-            <button onclick="sistemiAc()" style="width:100%; padding:18px; background:#f97316; color:white; border:none; border-radius:12px; font-weight:900; font-size:1.1rem; cursor:pointer;">GİRİŞ YAP</button>
+            <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:18px; margin-bottom:20px; border-radius:12px; text-align:center; font-weight:bold; background:#0f172a; color:white; border:1px solid #475569;">
+            <button onclick="sistemiAc()" style="width:100%; padding:18px; background:#f97316; color:white; border:none; border-radius:12px; font-weight:900;">SİSTEMİ BAĞLAN</button>
         </div>
     </div>
 
     <div class="ust-panel">
         <div id="ana-baslik">Osmaniye AFAD</div>
-        <div class="p-etiket" id="pAd">SİSTEME BAĞLANILIYOR...</div>
+        <div id="pAd" style="color:#22c55e; font-size:0.75rem; font-weight:bold;">🛰️ SİSTEM AKTİF</div>
     </div>
 
     <div class="vaka-alani">
         <div class="vaka-karti" id="vakaKutu">
-            <div id="vakaMetin" style="font-weight:900; font-size:1.2rem; color:#94a3b8; line-height:1.4;">GÖREV BEKLENİYOR...</div>
+            <div id="vakaMetin" style="font-weight:900; font-size:1.2rem; color:#94a3b8;">GÖREV BEKLENİYOR...</div>
         </div>
-        <button id="sosBtn" style="background:#dc2626; color:white; padding:22px; border-radius:20px; font-weight:900; width:100%; margin-top:auto; border:none; box-shadow: 0 8px 0 #7f1d1d; font-size:1.2rem;">🆘 ACİL DESTEK</button>
+        <button id="sosBtn" style="background:#dc2626; color:white; padding:22px; border-radius:20px; font-weight:900; width:100%; margin-top:auto; border:none; box-shadow: 0 8px 0 #7f1d1d;">🆘 ACİL DESTEK</button>
     </div>
 
     <div class="alt-panel">
-        <button class="btn-cikis" onclick="window.cikisYap()">🚪</button>
+        <button onclick="window.cikisYap()" style="width:50px; height:50px; border-radius:50%; background:#1e293b; border:2px solid #ef4444; color:#ef4444; position:absolute; left:25px; bottom:calc(35px+env(safe-area-inset-bottom));">🚪</button>
         <div style="display:flex; justify-content:center;"><div class="btn-mandal" id="mandalBtn">🎤</div></div>
         <div class="sezer-imza">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
     </div>
@@ -111,7 +91,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, update, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
@@ -133,32 +113,30 @@
 
         if(currentUser) {
             document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('pAd').innerText = "🛰️ PERSONEL: " + currentUser.toUpperCase();
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
             onDisconnect(userRef).remove();
 
-            // ARKA PLAN KİLİDİ (Ekrana dokunulduğu an başlar)
-            const wakeUp = async () => {
-                keepAlive.play();
+            // ⚠️ KRİTİK AYAR: İLK DOKUNUŞTA MOTORU ÇALIŞTIR
+            document.body.addEventListener('touchstart', () => {
+                keepAlive.play(); // Sessiz müzik başlar, telefon uyuyamaz.
                 if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
-            };
-            document.body.addEventListener('touchstart', wakeUp, {once: true});
+            }, {once: false});
 
             // KONUM TAKİBİ
             navigator.geolocation.watchPosition((p) => {
                 update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, ts: Date.now(), isim: currentUser, durum: "AKTİF" });
             }, null, { enableHighAccuracy: true, maximumAge: 0 });
 
-            // VAKA DİNLEME VE ÜSTTEN BİLDİRİM
+            // VAKA DİNLEME
             onValue(ref(db, 'ortakKanal'), (s) => {
                 const d = s.val();
                 if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaID) {
                     
-                    // Üstten Push Bildirim At (Uygulama arka plandaysa)
+                    // Üstten Bildirim At
                     if (Notification.permission === "granted") {
                         navigator.serviceWorker.ready.then(reg => {
-                            reg.showNotification('🚨 AFAD ACİL GÖREV', {
+                            reg.showNotification('🚨 AFAD ACİL VAKA', {
                                 body: d.metin,
                                 icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
                                 requireInteraction: true,
@@ -171,14 +149,13 @@
                     document.getElementById('vakaMetin').innerText = d.metin;
                     document.getElementById('vakaMetin').style.color = "white";
                     document.getElementById('vakaKutu').classList.add('vaka-var');
-                    
                     vakaSes.play().catch(() => {});
                     if(navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
                     sonVakaID = d.zaman;
                 }
             });
 
-            // TELSİZ SİSTEMİ
+            // TELSİZ
             const mandal = document.getElementById('mandalBtn');
             let mediaRecorder, chunks = [];
             mandal.ontouchstart = async (e) => {
