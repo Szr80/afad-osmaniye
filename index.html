@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -58,21 +57,24 @@
 
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
         
-        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(35px + env(safe-area-inset-bottom)); }
+        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
         
         .mandal-konteynir { position: relative; display: flex; flex-direction: column; align-items: center; }
-        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -40px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
+        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -45px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
         .btn-mandal.active { background: #dc2626; transform: scale(0.95); }
         
         #kayit-uyari { position: absolute; top: -75px; background: #dc2626; color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; display: none; animation: blink 1s infinite; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 20; }
         #kayit-uyari::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #dc2626; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
+        .cikis-kapsayici { position: absolute; left: 15px; bottom: calc(25px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 100; }
+        .btn-cikis-yuvarlak { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; color: #ef4444; border: 2px solid #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; }
+        .cikis-metni { color: #ef4444; font-size: 0.55rem; font-weight: 900; text-transform: uppercase; }
+
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
         #onayBox.aktif { top: 20px; }
 
-        .sezer-imza { position: absolute; bottom: 8px; font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
-        .sezer-imza-login { margin-top: 20px; font-size: 0.55rem; color: #94a3b8; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
+        .sezer-imza { position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -82,7 +84,6 @@
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px; display:flex; flex-direction:column; align-items:center;">
             <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
             <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
-            <div class="sezer-imza-login">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
         </div>
     </div>
 
@@ -110,7 +111,10 @@
     </div>
 
     <div class="alt-panel">
-        <div onclick="window.cikisYap()" style="position:absolute; left:20px; color:#ef4444; font-weight:900; cursor:pointer; font-size:0.75rem;">🚪 ÇIKIŞ</div>
+        <div class="cikis-kapsayici">
+            <button class="btn-cikis-yuvarlak" onclick="window.cikisYap()">🚪</button>
+            <span class="cikis-metni">UYGULAMADAN ÇIKIŞ</span>
+        </div>
         
         <div class="mandal-konteynir">
             <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
@@ -145,6 +149,12 @@
             document.getElementById('pAd').innerText = currentUser.toUpperCase();
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
+
+            // --- BAĞLANTI KONTROLÜ VE OTOMATİK SİLME ---
+            // Giriş yapar yapmaz admin panelinde görünmek için ilk veriyi gönderiyoruz
+            update(userRef, { isim: currentUser, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() });
+            
+            // Personel sekmeyi kapattığında veya bağlantısı koptuğunda kaydı Firebase'den otomatik siler
             onDisconnect(userRef).remove();
 
             onValue(ref(db, 'ortakKanal'), (s) => {
@@ -160,9 +170,10 @@
                 }
             });
 
+            // GÜNCELLENMİŞ MİKROFON SİSTEMİ
             const mandal = document.getElementById('mandalBtn');
             const kayitUyari = document.getElementById('kayit-uyari');
-            let mediaRecorder, audioChunks = [];
+            let mediaRecorder, audioChunks = [], currentStream;
 
             mandal.ontouchstart = async (e) => {
                 e.preventDefault();
@@ -171,23 +182,39 @@
                 if(navigator.vibrate) navigator.vibrate(50);
                 
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(currentStream);
                     mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
                     mediaRecorder.onstop = () => {
                         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const reader = new FileReader(); reader.readAsDataURL(blob);
-                        reader.onloadend = () => { push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); };
+                        const reader = new FileReader(); 
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = () => { 
+                            push(ref(db, 'telsizMesajlari'), { 
+                                ekip: currentUser, 
+                                ses: reader.result, 
+                                zaman: new Date().toLocaleTimeString('tr-TR') 
+                            }); 
+                        };
                         audioChunks = [];
+                        if(currentStream) {
+                            currentStream.getTracks().forEach(track => track.stop());
+                        }
                     };
                     mediaRecorder.start();
-                } catch(err) { console.log("Hata"); }
+                } catch(err) { 
+                    console.log("Mikrofon izni yok veya hata.");
+                    kayitUyari.style.display = 'none';
+                    mandal.classList.remove('active');
+                }
             };
 
             mandal.ontouchend = () => {
                 mandal.classList.remove('active');
                 kayitUyari.style.display = 'none'; 
-                if(mediaRecorder) mediaRecorder.stop();
+                if(mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
             };
 
             let sosTimer;
@@ -196,7 +223,7 @@
                 e.preventDefault();
                 if(navigator.vibrate) navigator.vibrate([1000, 200, 1000, 200, 1000]);
                 sosTimer = setTimeout(() => {
-                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false, isim: currentUser });
+                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false, isim: currentUser, timestamp: Date.now() });
                     document.body.classList.add('acil-mod');
                     sosBtn.disabled = true; sosBtn.innerText = "YARDIM ÇAĞRISI ATILDI!";
                 }, 3000);
@@ -209,7 +236,7 @@
                     document.getElementById('onayBox').classList.add('aktif');
                     document.body.classList.remove('acil-mod');
                     sosBtn.disabled = false; sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
-                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF" }); }, 4000);
+                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF", timestamp: Date.now() }); }, 4000);
                 }
             });
 
@@ -218,7 +245,7 @@
             }, null, { enableHighAccuracy: true });
         }
 
-        window.durumGuncelle = (durum) => { update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: durum }); };
+        window.durumGuncelle = (durum) => { update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: durum, timestamp: Date.now() }); };
         
         window.vakaKapat = () => {
             vakaSes.pause();
