@@ -1,121 +1,254 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>AFAD KESİNTİSİZ</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f97316">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
+    <title>Osmaniye AFAD</title>
     
     <script>
-        // SERVICE WORKER - ARKA PLANDA PUŞ BİLDİRİMİ ZORLA
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('push', e => {
-                    self.registration.showNotification('🚨 AFAD ACİL', {
-                        body: 'Yeni vaka geldi, hemen aç!',
-                        vibrate: [500, 200, 500],
-                        requireInteraction: true
-                    });
-                });
-            `;
-            const blob = new Blob([swCode], {type: 'application/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        }
+        const myManifest = {
+            "name": "Osmaniye AFAD",
+            "short_name": "AFAD",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#f97316",
+            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes": "512x512","type": "image/png","purpose": "any maskable"}]
+        };
+        const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
+        const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
     </script>
 
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .ust { background: #1e293b; padding: 20px; border-bottom: 4px solid #f97316; text-align: center; }
-        .vaka-kutu { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        #vakaMetin { font-size: 1.5rem; font-weight: 900; text-align: center; color: #94a3b8; border: 2px dashed #334155; padding: 30px; border-radius: 20px; width: 100%; }
-        .vaka-geldi { background: #450a0a !important; color: white !important; border: 4px solid #ef4444 !important; animation: salla 0.5s infinite; }
-        @keyframes salla { 0% {transform: rotate(0)} 25% {transform: rotate(2deg)} 75% {transform: rotate(-2deg)} 100% {transform: rotate(0)} }
-        .mandal { width: 120px; height: 120px; background: #f97316; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 20px auto; border: 10px solid #1e293b; touch-action: none; }
-        /* Görünmez Video Alanı */
-        #dummy-video { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
+        
+        body.acil-mod { background: #7f1d1d !important; }
+        body.acil-mod .ust-panel, body.acil-mod .ana-vaka-kutusu, body.acil-mod .alt-panel { background: #450a0a !important; border-color: #ef4444 !important; }
+
+        .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
+        .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
+        #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
+        
+        .konum-ikon-alani { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+        .canak { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; position: relative; }
+        .canak::after { content: ''; position: absolute; inset: -4px; border: 2px solid #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+        .sistem-aktif { color: #22c55e; font-size: 0.65rem; font-weight: 900; }
+
+        .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
+        .ana-vaka-kutusu { background: #1e293b; padding: 20px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .vaka-var { border-left-color: #ef4444; background: #450a0a; animation: vakaFlash 1s infinite; }
+        @keyframes vakaFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.7rem; color: white; cursor: pointer; text-transform: uppercase; }
+        .btn-yolda { background: #3b82f6; border-bottom: 4px solid #1e40af; }
+        .btn-olay { background: #eab308; border-bottom: 4px solid #a16207; }
+        .btn-donus { background: #a855f7; border-bottom: 4px solid #7e22ce; }
+        .btn-tamam { background: #22c55e; border-bottom: 4px solid #166534; }
+
+        .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #f97316; text-align: left; font-size: 0.8rem; margin-bottom: 5px; }
+        .gecmis-zaman { color: #f97316; font-size: 0.65rem; font-weight: bold; display: block; }
+
+        .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
+        
+        .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(35px + env(safe-area-inset-bottom)); }
+        
+        .mandal-konteynir { position: relative; display: flex; flex-direction: column; align-items: center; }
+        .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -40px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
+        .btn-mandal.active { background: #dc2626; transform: scale(0.95); }
+        
+        #kayit-uyari { position: absolute; top: -75px; background: #dc2626; color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; display: none; animation: blink 1s infinite; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 20; }
+        #kayit-uyari::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #dc2626; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
+        #onayBox.aktif { top: 20px; }
+
+        .sezer-imza { position: absolute; bottom: 8px; font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
+        .sezer-imza-login { margin-top: 20px; font-size: 0.55rem; color: #94a3b8; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; }
     </style>
 </head>
 <body>
+    <div id="onayBox">✅ MERKEZ UYARIYI GÖRDÜ</div>
 
-    <div class="ust">
-        <h2 style="margin:0; color:#f97316;">OSMANİYE AFAD</h2>
-        <small id="personelAd">BAĞLANTI BEKLENİYOR...</small>
+    <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px; display:flex; flex-direction:column; align-items:center;">
+            <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
+            <button onclick="sistemiAc()" style="width:100%; padding:15px; background:#f97316; color:white; border:none; border-radius:10px; font-weight:900;">SİSTEME BAĞLAN</button>
+            <div class="sezer-imza-login">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
+        </div>
     </div>
 
-    <div class="vaka-kutu">
-        <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
+    <div class="ust-panel">
+        <div class="zaman-satiri"><div id="tarih-ust">...</div><div id="saat-ust">...</div></div>
+        <div id="ana-baslik">Osmaniye AFAD</div>
+        <div class="konum-ikon-alani">
+            <div class="canak"></div>
+            <span id="pAd">...</span> | <span class="sistem-aktif">SİSTEM ÇEVRİMİÇİ | CANLI KONUM AKTİF</span>
+        </div>
     </div>
 
-    <video id="dummy-video" loop playsinline muted>
-        <source src="https://raw.githubusercontent.com/anars/blank-audio/master/250-milliseconds-of-silence.mp3" type="audio/mp3">
-    </video>
+    <div class="vaka-alani">
+        <div class="ana-vaka-kutusu" id="vakaKutu">
+            <div id="vakaMetin" style="font-weight:900; font-size:1.1rem;">GÖREV BEKLENİYOR...</div>
+            <div class="durum-butonlar" id="vakaButonlar">
+                <button class="btn-durum btn-yolda" onclick="durumGuncelle('YOLDAYIM')">YOLDAYIM</button>
+                <button class="btn-durum btn-olay" onclick="durumGuncelle('OLAY YERİNDE')">OLAY YERİ</button>
+                <button class="btn-durum btn-donus" onclick="durumGuncelle('DÖNÜŞE GEÇTİM')">DÖNÜŞTE</button>
+                <button class="btn-durum btn-tamam" onclick="vakaKapat()">TAMAMLANDI</button>
+            </div>
+        </div>
+        <div id="vakaGecmisAlani"></div>
+        <button class="btn-acil" id="acilDestekBtn">🆘 ACİL DESTEK (3 SN)</button>
+    </div>
 
-    <div class="mandal" id="mandal">🎤</div>
+    <div class="alt-panel">
+        <div onclick="window.cikisYap()" style="position:absolute; left:20px; color:#ef4444; font-weight:900; cursor:pointer; font-size:0.75rem;">🚪 ÇIKIŞ</div>
+        
+        <div class="mandal-konteynir">
+            <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
+            <div class="btn-mandal" id="mandalBtn">🎤</div>
+        </div>
 
-    <audio id="alarm" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" loop></audio>
+        <div class="sezer-imza">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
+    </div>
+
+    <audio id="vakaSes" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+        import { getDatabase, ref, set, onValue, push, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
         const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        let currentUser = localStorage.getItem('afadUser') || "";
+        let vakaGecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
+        let sonVakaID = ""; 
+        const vakaSes = document.getElementById('vakaSes');
 
-        let isim = localStorage.getItem('afadUser');
-        if(!isim) {
-            isim = prompt("Lütfen Personel Adınızı Girin:");
-            localStorage.setItem('afadUser', isim);
-        }
-        document.getElementById('personelAd').innerText = "PERSONEL: " + isim.toUpperCase();
-
-        const vakaMetin = document.getElementById('vakaMetin');
-        const alarm = document.getElementById('alarm');
-        const dummyVideo = document.getElementById('dummy-video');
-
-        // 🔥 WHATSAPP MODU: EKRANA DOKUNUNCA SİSTEMİ KİLİTLE
-        window.onclick = () => {
-            dummyVideo.play(); // Görünmez video başlar, Android/iOS interneti kesemez.
-            alarm.play(); alarm.pause(); // Ses motorunu hazırla
-            if(navigator.wakeLock) navigator.wakeLock.request('screen');
+        window.sistemiAc = () => {
+            const name = document.getElementById('userName').value.trim();
+            if(name) { localStorage.setItem('afadUser', name); location.reload(); }
         };
 
-        // KONUM TAKİBİ
-        navigator.geolocation.watchPosition(p => {
-            update(ref(db, 'aktifKullanicilar/' + isim), { lat: p.coords.latitude, lng: p.coords.longitude, ts: Date.now() });
-        }, null, { enableHighAccuracy: true });
+        if(currentUser) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('pAd').innerText = currentUser.toUpperCase();
+            const userKey = currentUser.replace(/\s/g, "_");
+            const userRef = ref(db, 'aktifKullanicilar/' + userKey);
+            onDisconnect(userRef).remove();
 
-        // VAKA DİNLEME
-        let sonZaman = 0;
-        onValue(ref(db, 'ortakKanal'), s => {
-            const d = s.val();
-            if(d && d.zaman !== sonZaman && !d.metin.includes("BEKLENİYOR")) {
-                vakaMetin.innerText = d.metin;
-                vakaMetin.classList.add('vaka-geldi');
-                alarm.play();
-                if(navigator.vibrate) navigator.vibrate([500, 500, 500, 500, 500]);
-                sonZaman = d.zaman;
-            }
-        });
+            onValue(ref(db, 'ortakKanal'), (s) => {
+                const d = s.val();
+                if(d?.metin && !d.metin.includes("BEKLENİYOR") && d.zaman !== sonVakaID) {
+                    document.getElementById('vakaMetin').innerText = d.metin;
+                    document.getElementById('vakaKutu').classList.add('vaka-var');
+                    document.getElementById('vakaButonlar').style.display = 'grid';
+                    vakaSes.loop = true; vakaSes.play().catch(()=>{});
+                    setTimeout(() => { vakaSes.loop = false; vakaSes.pause(); vakaSes.currentTime = 0; }, 6000);
+                    if(navigator.vibrate) navigator.vibrate([300, 200, 300, 200, 300]);
+                    sonVakaID = d.zaman;
+                }
+            });
 
-        // TELSİZ
-        const mandal = document.getElementById('mandal');
-        let recorder;
-        mandal.ontouchstart = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recorder = new MediaRecorder(stream);
-            let chunks = [];
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => push(ref(db, 'telsizMesajlari'), { isim, ses: reader.result, ts: Date.now() });
+            const mandal = document.getElementById('mandalBtn');
+            const kayitUyari = document.getElementById('kayit-uyari');
+            let mediaRecorder, audioChunks = [];
+
+            mandal.ontouchstart = async (e) => {
+                e.preventDefault();
+                mandal.classList.add('active');
+                kayitUyari.style.display = 'block'; 
+                if(navigator.vibrate) navigator.vibrate(50);
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader(); reader.readAsDataURL(blob);
+                        reader.onloadend = () => { push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); };
+                        audioChunks = [];
+                    };
+                    mediaRecorder.start();
+                } catch(err) { console.log("Hata"); }
             };
-            recorder.start();
-            mandal.style.background = "red";
+
+            mandal.ontouchend = () => {
+                mandal.classList.remove('active');
+                kayitUyari.style.display = 'none'; 
+                if(mediaRecorder) mediaRecorder.stop();
+            };
+
+            let sosTimer;
+            const sosBtn = document.getElementById('acilDestekBtn');
+            sosBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if(navigator.vibrate) navigator.vibrate([1000, 200, 1000, 200, 1000]);
+                sosTimer = setTimeout(() => {
+                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false, isim: currentUser });
+                    document.body.classList.add('acil-mod');
+                    sosBtn.disabled = true; sosBtn.innerText = "YARDIM ÇAĞRISI ATILDI!";
+                }, 3000);
+            });
+            sosBtn.addEventListener('touchend', () => { if(!sosBtn.disabled){ clearTimeout(sosTimer); if(navigator.vibrate) navigator.vibrate(0); } });
+
+            onValue(userRef, (s) => {
+                const d = s.val();
+                if(d?.onay === true) {
+                    document.getElementById('onayBox').classList.add('aktif');
+                    document.body.classList.remove('acil-mod');
+                    sosBtn.disabled = false; sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
+                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF" }); }, 4000);
+                }
+            });
+
+            navigator.geolocation.watchPosition((p) => {
+                update(userRef, { lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now(), isim: currentUser });
+            }, null, { enableHighAccuracy: true });
+        }
+
+        window.durumGuncelle = (durum) => { update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: durum }); };
+        
+        window.vakaKapat = () => {
+            vakaSes.pause();
+            const txt = document.getElementById('vakaMetin').innerText;
+            vakaGecmis.unshift({ metin: txt, tarih: new Date().toLocaleDateString('tr-TR'), saat: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
+            vakaGecmis = vakaGecmis.slice(0, 5);
+            localStorage.setItem('vakaGecmis', JSON.stringify(vakaGecmis));
+            gecmisListele();
+            document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
+            document.getElementById('vakaKutu').classList.remove('vaka-var');
+            document.getElementById('vakaButonlar').style.display = 'none';
+            durumGuncelle('HAZIR / BEKLEMEDE');
         };
-        mandal.ontouchend = () => { recorder.stop(); mandal.style.background = "#f97316"; };
+
+        function gecmisListele() {
+            const alan = document.getElementById('vakaGecmisAlani');
+            alan.innerHTML = "";
+            vakaGecmis.forEach(v => {
+                alan.innerHTML += `<div class="gecmis-vaka"><span class="gecmis-zaman">${v.tarih} | ${v.saat}</span>${v.metin}</div>`;
+            });
+        }
+        gecmisListele();
+        window.cikisYap = () => { localStorage.clear(); location.reload(); };
+        
+        setInterval(() => {
+            const simdi = new Date();
+            const gunler = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
+            document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR') + " " + gunler[simdi.getDay()];
+            document.getElementById('saat-ust').innerText = simdi.toLocaleTimeString('tr-TR');
+        }, 1000);
     </script>
 </body>
 </html>
