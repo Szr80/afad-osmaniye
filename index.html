@@ -67,20 +67,39 @@
         #kayit-uyari::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #dc2626; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* YENİ ÇIKIŞ BUTONU STİLİ */
-        .btn-cikis-modern {
+        /* GÜNCELLENMİŞ ÇIKIŞ BUTONU VE YAZISI */
+        .cikis-kapsayici {
             position: absolute; 
             left: 15px; 
-            bottom: calc(20px + env(safe-area-inset-bottom)); 
-            background: #334155; 
+            bottom: calc(25px + env(safe-area-inset-bottom)); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 100;
+        }
+
+        .btn-cikis-yuvarlak {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #1e293b; 
             color: #ef4444; 
-            border: 1px solid #ef4444;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-weight: 900; 
-            font-size: 0.65rem;
+            border: 2px solid #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
             cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .cikis-metni {
+            color: #ef4444;
+            font-size: 0.55rem;
+            font-weight: 900;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
@@ -125,7 +144,10 @@
     </div>
 
     <div class="alt-panel">
-        <button class="btn-cikis-modern" onclick="window.cikisYap()">🚪 ÇIKIŞ</button>
+        <div class="cikis-kapsayici">
+            <button class="btn-cikis-yuvarlak" onclick="window.cikisYap()">🚪</button>
+            <span class="cikis-metni">UYGULAMADAN ÇIKIŞ</span>
+        </div>
         
         <div class="mandal-konteynir">
             <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
