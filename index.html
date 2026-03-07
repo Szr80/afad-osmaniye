@@ -1,42 +1,225 @@
-<div id="vakaButonlar" style="display: none; margin-top: 10px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button onclick="durumGuncelle('YOLDA')" style="background:#334155; color:white; border:1px solid #475569; padding:12px; border-radius:12px; font-weight:900; font-size:0.8rem;">🚜 YOLDA</button>
-        <button onclick="durumGuncelle('OLAY YERİ')" style="background:#334155; color:white; border:1px solid #475569; padding:12px; border-radius:12px; font-weight:900; font-size:0.8rem;">📍 OLAY YERİ</button>
-        <button onclick="durumGuncelle('DÖNÜŞTE')" style="background:#334155; color:white; border:1px solid #475569; padding:12px; border-radius:12px; font-weight:900; font-size:0.8rem;">🏠 DÖNÜŞTE</button>
-        <button onclick="durumGuncelle('HAZIR')" style="background:#334155; color:white; border:1px solid #475569; padding:12px; border-radius:12px; font-weight:900; font-size:0.8rem;">✅ HAZIR</button>
-        
-        <input type="file" id="fotoInput" accept="image/*" capture="camera" style="display: none;">
-        <button onclick="document.getElementById('fotoInput').click()" style="grid-column: span 2; background:#f59e0b; color:white; border:none; padding:12px; border-radius:12px; font-weight:900; font-size:0.9rem; margin-top:5px;">📸 OLAY YERİ FOTOĞRAFI GÖNDER</button>
-        
-        <button onclick="gorevTamamla()" style="grid-column: span 2; background:#22c55e; color:white; border:none; padding:15px; border-radius:15px; font-weight:900; margin-top:5px;">GÖREVİ TAMAMLA VE ARŞİVLE</button>
-    </div>
-</div>
-
-<script type="module">
-    // ... Mevcut Firebase ve diğer kodların en altına ekle ...
-
-    document.getElementById('fotoInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const base64Image = event.target.result;
-            // Mevcut currentUser değişkenini kullanarak Firebase'e yazar
-            const path = 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_");
-            update(ref(db, path), {
-                olayFoto: base64Image,
-                fotoZaman: new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})
-            }).then(() => alert("Fotoğraf Merkeze İletildi!"));
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f97316">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/564/564619.png">
+    <title>Osmaniye AFAD</title>
+    
+    <script>
+        const myManifest = {
+            "name": "Osmaniye AFAD",
+            "short_name": "AFAD",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#f97316",
+            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/564/564619.png","sizes": "512x512","type": "image/png","purpose": "any maskable"}]
         };
-        // Boyutu optimize etmek için resmi oku
-        reader.readAsDataURL(file);
-    };
+        const blob = new Blob([JSON.stringify(myManifest)], {type: 'application/json'});
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = URL.createObjectURL(blob);
+        document.head.appendChild(link);
+    </script>
 
-    // Görev tamamlandığında fotoğrafı temizleme (gorevTamamla fonksiyonunun içine ekle)
-    const eskiGorevTamamla = window.gorevTamamla;
-    window.gorevTamamla = () => {
-        update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { olayFoto: null });
-        eskiGorevTamamla();
-    };
-</script>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #0f172a; color: white; margin: 0; padding: env(safe-area-inset-top) 15px 15px 15px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        .ust-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid #1e293b; }
+        .ekip-bilgi { display: flex; align-items: center; gap: 10px; }
+        .ekip-nokta { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+        .ekip-isim { font-weight: 900; color: #f97316; font-size: 0.9rem; text-transform: uppercase; }
+
+        .vaka-kutu { background: #1e293b; padding: 20px; border-radius: 20px; border-left: 12px solid #f97316; margin-bottom: 15px; position: relative; min-height: 120px; display: flex; align-items: center; transition: 0.3s; }
+        #vakaMetin { font-size: 1.1rem; font-weight: bold; line-height: 1.4; }
+
+        .btn-grup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .btn { border: none; padding: 15px; border-radius: 15px; color: white; font-weight: 900; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-durum { background: #334155; border: 1px solid #475569; }
+        .btn-aktif { background: #3b82f6 !important; border-color: #60a5fa !important; }
+        .btn-tamam { background: #22c55e; grid-column: span 2; padding: 20px; font-size: 1rem; }
+        .btn-foto { background: #f59e0b; grid-column: span 2; margin-bottom: 5px; }
+
+        .telsiz-alan { flex-grow: 1; background: #1e293b; border-radius: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border: 2px solid #334155; margin-bottom: 10px; }
+        #micBtn { width: 100px; height: 100px; background: #f97316; border: none; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 10px 30px rgba(249,115,22,0.4); cursor: pointer; }
+
+        .gecmis-panel { background: #0f172a; border-radius: 15px; padding: 10px; height: 150px; overflow-y: auto; border: 1px solid #1e293b; }
+        .gecmis-baslik { font-size: 0.7rem; font-weight: bold; color: #475569; margin-bottom: 8px; letter-spacing: 1px; }
+        .gecmis-vaka { background: #1e293b; padding: 10px; border-radius: 10px; margin-bottom: 5px; font-size: 0.8rem; border-left: 3px solid #334155; }
+
+        #loginOverlay { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 30px; }
+        .login-card { background: #1e293b; padding: 30px; border-radius: 25px; border: 2px solid #f97316; width: 100%; text-align: center; }
+        .login-card input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: white; margin-bottom: 15px; text-align: center; }
+        .login-card button { width: 100%; padding: 15px; background: #f97316; border: none; border-radius: 12px; color: white; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+    <audio id="vakaSesi" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3" preload="auto"></audio>
+
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h2 style="color: #f97316; margin-bottom: 20px;">EKİP GİRİŞİ</h2>
+            <input type="text" id="ekipAdi" placeholder="EKİP ADI (A-101)">
+            <button onclick="girisYap()">BAĞLAN</button>
+        </div>
+    </div>
+
+    <div class="ust-bar">
+        <div class="ekip-bilgi">
+            <div class="ekip-nokta"></div>
+            <span class="ekip-isim" id="txtEkipAd">EKİP: -</span>
+        </div>
+        <div style="text-align: right;">
+            <div id="txtSaat" style="font-weight: 900; font-size: 1.1rem; color: #f97316;">00:00</div>
+            <div id="txtTarih" style="font-size: 0.6rem; color: #475569;">-</div>
+        </div>
+    </div>
+
+    <div class="vaka-kutu" id="vakaKutu">
+        <div id="vakaMetin">GÖREV BEKLENİYOR...</div>
+    </div>
+
+    <div id="vakaButonlar" style="display: none;">
+        <div class="btn-grup">
+            <button class="btn btn-durum" id="btn-YOLDA" onclick="durumGuncelle('YOLDA')">🚜 YOLDA</button>
+            <button class="btn btn-durum" id="btn-OLAY" onclick="durumGuncelle('OLAY YERİ')">📍 OLAY YERİ</button>
+            <button class="btn btn-durum" id="btn-DONUS" onclick="durumGuncelle('DÖNÜŞTE')">🏠 DÖNÜŞTE</button>
+            <button class="btn btn-durum" id="btn-HAZIR" onclick="durumGuncelle('HAZIR')">✅ HAZIR</button>
+            
+            <input type="file" id="fotoInput" accept="image/*" capture="camera" style="display: none;">
+            <button class="btn btn-foto" onclick="document.getElementById('fotoInput').click()">📸 FOTOĞRAF GÖNDER</button>
+            
+            <button class="btn btn-tamam" onclick="gorevTamamla()">GÖREVİ TAMAMLA</button>
+        </div>
+    </div>
+
+    <div class="telsiz-alan">
+        <button id="micBtn">🎙️</button>
+        <div id="micDurum" style="margin-top: 10px; font-size: 0.7rem; color: #64748b;">MANDALA BASILI TUTUN</div>
+    </div>
+
+    <div class="gecmis-baslik">GEÇMİŞ VAKALAR</div>
+    <div class="gecmis-panel" id="vakaGecmisAlani"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { databaseURL: "https://ana-uygulama-f22cb-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentUser = localStorage.getItem('ekipAdi');
+        let vakaListesi = JSON.parse(localStorage.getItem('vakaGecmis') || "[]");
+
+        if(currentUser) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('txtEkipAd').innerText = "EKİP: " + currentUser;
+            konumBaslat();
+            vakaDinle();
+            telsizHazirla();
+            fotoHazirla();
+        }
+
+        window.girisYap = () => {
+            const ad = document.getElementById('ekipAdi').value.trim().toUpperCase();
+            if(ad) { localStorage.setItem('ekipAdi', ad); location.reload(); }
+        };
+
+        function konumBaslat() {
+            navigator.geolocation.watchPosition(p => {
+                update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), {
+                    isim: currentUser, lat: p.coords.latitude, lng: p.coords.longitude, timestamp: Date.now()
+                });
+            }, null, { enableHighAccuracy: true });
+        }
+
+        function vakaDinle() {
+            const vakaSes = document.getElementById('vakaSesi');
+            onValue(ref(db, 'ortakKanal'), (s) => {
+                const v = s.val();
+                if(v && v.metin && !v.metin.includes("GÖREV BEKLENİYOR")) {
+                    document.getElementById('vakaMetin').innerText = v.metin;
+                    document.getElementById('vakaKutu').style.borderLeftColor = "#ef4444";
+                    document.getElementById('vakaButonlar').style.display = 'block';
+                    vakaSes.play().catch(()=>{});
+                    
+                    const msg = new SpeechSynthesisUtterance("Yeni vaka bildirimi: " + v.metin);
+                    msg.lang = 'tr-TR'; window.speechSynthesis.speak(msg);
+                }
+            });
+        }
+
+        window.durumGuncelle = (dur) => {
+            update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: dur });
+            document.querySelectorAll('.btn-durum').forEach(b => b.classList.remove('btn-aktif'));
+            const id = dur === 'OLAY YERİ' ? 'OLAY' : dur === 'DÖNÜŞTE' ? 'DONUS' : dur;
+            document.getElementById('btn-' + id).classList.add('btn-aktif');
+        };
+
+        function fotoHazirla() {
+            document.getElementById('fotoInput').onchange = (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), {
+                        olayFoto: ev.target.result,
+                        fotoZaman: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})
+                    }).then(() => alert("Fotoğraf Gönderildi"));
+                };
+                r.readAsDataURL(file);
+            };
+        }
+
+        window.gorevTamamla = () => {
+            const txt = document.getElementById('vakaMetin').innerText;
+            vakaListesi.unshift({ metin: txt, tarih: new Date().toLocaleDateString('tr-TR') });
+            vakaListesi = vakaListesi.slice(0, 5);
+            localStorage.setItem('vakaGecmis', JSON.stringify(vakaListesi));
+            gecmisCiz();
+            document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
+            document.getElementById('vakaKutu').style.borderLeftColor = "#f97316";
+            document.getElementById('vakaButonlar').style.display = 'none';
+            update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: "HAZIR", olayFoto: null });
+        };
+
+        function telsizHazirla() {
+            let mr; let chunks = [];
+            const btn = document.getElementById('micBtn');
+            btn.addEventListener('touchstart', async (e) => {
+                e.preventDefault(); chunks = [];
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mr = new MediaRecorder(stream);
+                mr.ondataavailable = (e) => chunks.push(e.data);
+                mr.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const r = new FileReader();
+                    r.onload = () => push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: r.result, zaman: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
+                    r.readAsDataURL(blob);
+                };
+                mr.start(); btn.style.background = "#ef4444";
+            });
+            btn.addEventListener('touchend', () => { if(mr) mr.stop(); btn.style.background = "#f97316"; });
+        }
+
+        function gecmisCiz() {
+            const a = document.getElementById('vakaGecmisAlani'); a.innerHTML = "";
+            vakaListesi.forEach(v => { a.innerHTML += `<div class="gecmis-vaka">${v.tarih} - ${v.metin}</div>`; });
+        }
+        gecmisCiz();
+
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('txtSaat').innerText = d.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('txtTarih').innerText = d.toLocaleDateString('tr-TR', {day:'numeric', month:'long'});
+        }, 1000);
+    </script>
+</body>
+</html>
