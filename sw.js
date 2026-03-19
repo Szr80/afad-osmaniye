@@ -1,11 +1,36 @@
-self.addEventListener('install', (e) => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-self.addEventListener('push', (e) => {
-    const data = e.data ? e.data.json() : { title: 'AFAD', body: 'Yeni Vaka!' };
-    e.waitUntil(self.registration.showNotification(data.title, {
+// sw.js - Arka Plan Dinleyici
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(clients.claim());
+});
+
+// Arka planda vaka bildirimlerini yakalar
+self.addEventListener('push', (event) => {
+    const data = event.data ? event.data.json() : { title: 'Osmaniye AFAD', body: 'Yeni vaka bildirimi!' };
+    
+    const options = {
         body: data.body,
         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
-        requireInteraction: true,
-        vibrate: [500, 200, 500]
-    }));
+        badge: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
+        vibrate: [500, 200, 500, 200, 500],
+        requireInteraction: true, // Kullanıcı kapatana kadar ekranda kalır
+        data: { url: '/' }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            if (clientList.length > 0) return clientList[0].focus();
+            return clients.openWindow('/');
+        })
+    );
 });
