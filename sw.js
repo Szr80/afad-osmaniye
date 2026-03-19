@@ -7,7 +7,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-// Bildirimleri yakalayan kısım
+// Bildirimleri Yakala
 self.addEventListener('push', (event) => {
     const data = event.data ? event.data.json() : { title: 'AFAD GÖREV', body: 'Yeni vaka bildirimi!' };
     const options = {
