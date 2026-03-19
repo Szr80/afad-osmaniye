@@ -1,5 +1,4 @@
-const CACHE_NAME = 'afad-v1';
-
+// sw.js - Arka Plan Dinleyici
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -8,9 +7,9 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-// Arka planda vaka bildirimini yakalar
+// Bildirim Yakalama
 self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : { title: 'AFAD GÖREV', body: 'Yeni vaka bildirimi var!' };
+    const data = event.data ? event.data.json() : { title: 'AFAD GÖREV', body: 'Yeni vaka bildirimi!' };
     const options = {
         body: data.body,
         icon: 'https://cdn-icons-png.flaticon.com/512/564/564619.png',
