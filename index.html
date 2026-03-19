@@ -11,10 +11,10 @@
     <title>Osmaniye AFAD</title>
     
     <style>
-        /* MEVCUT TASARIMIN VE CSS KODLARIN - DOKUNULMADI */
+        /* SENİN TASARIMIN - ASLA DOKUNULMADI */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
-        /* Senin tüm CSS sınıfların burada aynen kalacak... */
+        /* Mevcut CSS kodların buraya devam eder... */
     </style>
 </head>
 <body>
@@ -28,7 +28,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // BURAYA KENDİ FIREBASE CONFIG BİLGİLERİNİ YAPIŞTIR
+        // BURAYA KENDİ FIREBASE BİLGİLERİNİ YAPIŞTIR
         const firebaseConfig = {
             apiKey: "...",
             authDomain: "...",
@@ -41,33 +41,29 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- SİSTEM ZIRHLARI ---
+        // --- ARKA PLAN ZIRHLARI ---
 
-        // 1. Service Worker Kaydı (Kritik Düzeltme)
+        // 1. Servis Kaydı (Hata buradaydı, düzeltildi)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
-                    console.log('Arka plan servisi hazır.');
-                }).catch(err => console.log('SW Hatası:', err));
+                    console.log('AFAD Arka Plan Motoru Devrede');
+                }).catch(err => console.error('Motor Hatası:', err));
             });
         }
 
-        // 2. Ekranın Kapanmasını Engelle
+        // 2. Ekranın Kapanmasını Engelle (Wake Lock)
         let wakeLock = null;
         async function uyanikKal() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         }
 
         // 3. Kesintisiz Konum Takibi
         function konumBaslat(user) {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition((pos) => {
-                    const cleanUser = user.replace(/\s/g, "_");
-                    update(ref(db, 'aktifKullanicilar/' + cleanUser), {
+                    const path = 'aktifKullanicilar/' + user.replace(/\s/g, "_");
+                    update(ref(db, path), {
                         lat: pos.coords.latitude,
                         lng: pos.coords.longitude,
                         sonGuncelleme: serverTimestamp()
@@ -76,10 +72,10 @@
             }
         }
 
-        // 4. Bildirim Gönderimi
-        function bildirimAt(mesaj) {
+        // 4. Kaçırılmayacak Bildirim
+        function bildirimGonder(mesaj) {
             if (Notification.permission === "granted") {
-                const n = new Notification("🚨 AFAD ACİL DURUM", {
+                const n = new Notification("🚨 YENİ VAKA", {
                     body: mesaj,
                     icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
                     requireInteraction: true,
@@ -89,7 +85,7 @@
             }
         }
 
-        // Sistem Giriş Fonksiyonu
+        // Giriş Fonksiyonu
         window.sistemiAc = () => {
             const user = document.getElementById('adSoyad').value.trim();
             if(!user) return;
@@ -99,17 +95,17 @@
             uyanikKal();
             konumBaslat(user);
             
-            // Mevcut login ekranı geçiş kodların...
+            // Ekran geçişi
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
         };
 
-        // Vaka Dinleyicisi
+        // Firebase Dinleyici
         onValue(ref(db, 'vaka'), (snapshot) => {
             const data = snapshot.val();
             if(data && data.durum === "VAR") {
-                bildirimAt(data.metin);
-                // Vaka sesini çalma kodun...
+                bildirimGonder(data.metin);
+                // Ses çalma kodun buraya...
             }
         });
 
