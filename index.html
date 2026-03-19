@@ -11,10 +11,10 @@
     <title>Osmaniye AFAD</title>
     
     <style>
-        /* SENİN TASARIMIN - ASLA DOKUNULMADI */
+        /* SENİN TASARIMIN VE CSS KODLARIN - HİÇ DOKUNULMADI */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
-        /* Mevcut CSS kodların buraya devam eder... */
+        /* Mevcut CSS kodlarını buraya yapıştırabilirsin... */
     </style>
 </head>
 <body>
@@ -28,7 +28,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // BURAYA KENDİ FIREBASE BİLGİLERİNİ YAPIŞTIR
+        // FIREBASE CONFIG BİLGİLERİNİ BURAYA EKSİKSİZ YAPIŞTIR
         const firebaseConfig = {
             apiKey: "...",
             authDomain: "...",
@@ -41,18 +41,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- ARKA PLAN ZIRHLARI ---
+        // --- SİSTEM ZIRHLARI ---
 
-        // 1. Servis Kaydı (Hata buradaydı, düzeltildi)
+        // 1. Service Worker Kaydı (Hata buradaydı, düzeltildi)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
-                    console.log('AFAD Arka Plan Motoru Devrede');
+                    console.log('AFAD Motoru Hazır');
                 }).catch(err => console.error('Motor Hatası:', err));
             });
         }
 
-        // 2. Ekranın Kapanmasını Engelle (Wake Lock)
+        // 2. Ekran Kilidini Engelle
         let wakeLock = null;
         async function uyanikKal() {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
@@ -62,8 +62,8 @@
         function konumBaslat(user) {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition((pos) => {
-                    const path = 'aktifKullanicilar/' + user.replace(/\s/g, "_");
-                    update(ref(db, path), {
+                    const cleanUser = user.replace(/\s/g, "_");
+                    update(ref(db, 'aktifKullanicilar/' + cleanUser), {
                         lat: pos.coords.latitude,
                         lng: pos.coords.longitude,
                         sonGuncelleme: serverTimestamp()
@@ -72,20 +72,7 @@
             }
         }
 
-        // 4. Kaçırılmayacak Bildirim
-        function bildirimGonder(mesaj) {
-            if (Notification.permission === "granted") {
-                const n = new Notification("🚨 YENİ VAKA", {
-                    body: mesaj,
-                    icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                    requireInteraction: true,
-                    vibrate: [500, 200, 500]
-                });
-                n.onclick = () => { window.focus(); n.close(); };
-            }
-        }
-
-        // Giriş Fonksiyonu
+        // Giriş Fonksiyonu (Tasarımı bozmadan sistemi açar)
         window.sistemiAc = () => {
             const user = document.getElementById('adSoyad').value.trim();
             if(!user) return;
@@ -95,20 +82,24 @@
             uyanikKal();
             konumBaslat(user);
             
-            // Ekran geçişi
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
         };
 
-        // Firebase Dinleyici
+        // Vaka Dinleyicisi
         onValue(ref(db, 'vaka'), (snapshot) => {
             const data = snapshot.val();
             if(data && data.durum === "VAR") {
-                bildirimGonder(data.metin);
-                // Ses çalma kodun buraya...
+                if (Notification.permission === "granted") {
+                    new Notification("🚨 YENİ VAKA", {
+                        body: data.metin,
+                        icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
+                        requireInteraction: true
+                    });
+                }
+                // Senin ses çalma kodların buraya...
             }
         });
-
     </script>
 </body>
 </html>
