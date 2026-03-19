@@ -11,10 +11,9 @@
     <title>Osmaniye AFAD</title>
     
     <style>
-        /* Senin mevcut CSS kodların buraya gelecek - Değişiklik yok */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        /* ... diğer stiller ... */
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
+        /* Senin mevcut CSS kodların buraya devam edecek */
     </style>
 </head>
 <body>
@@ -23,38 +22,32 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, update, serverTimestamp, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Firebase yapılandırman (Mevcut olanı kullan)
-        const firebaseConfig = { /* SENİN BİLGİLERİN */ };
+        // Firebase Ayarlarını buraya kendi bilgilerini yapıştır
+        const firebaseConfig = { /* KENDİ BİLGİLERİN */ };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- YENİ EKLENEN ARKA PLAN VE BİLDİRİM ZIRHI ---
+        // --- ARKA PLAN VE BİLDİRİM ZIRHI ---
         
         // 1. Service Worker Kaydı
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
-                console.log("AFAD Servisi Aktif");
-            });
+            navigator.serviceWorker.register('./sw.js').then(reg => console.log("AFAD Hazır."));
         }
 
-        // 2. Ekranı Her Koşulda Açık Tut (Wake Lock)
+        // 2. Ekranı Uyanık Tut (Wake Lock)
         let wakeLock = null;
-        async function ekranıUyanıkTut() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) { console.log("WakeLock Hatası"); }
+        async function uyanikKal() {
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         }
-        document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') ekranıUyanıkTut(); });
 
         // 3. Kesintisiz Konum Takibi
-        function konumTakibiBaslat(user) {
+        function konumBaslat(user) {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition((pos) => {
-                    update(ref(db, 'aktifKullanicilar/' + user.replace(/\s/g, "_")), {
+                    const path = 'aktifKullanicilar/' + user.replace(/\s/g, "_");
+                    update(ref(db, path), {
                         lat: pos.coords.latitude,
                         lng: pos.coords.longitude,
                         sonGuncelleme: serverTimestamp()
@@ -63,40 +56,42 @@
             }
         }
 
-        // 4. Kritik Bildirim Fonksiyonu
-        function vakaBildirimiYap(mesaj) {
+        // 4. Kritik Bildirim Tetikleyici
+        function bildirimGonder(mesaj) {
             if (Notification.permission === "granted") {
-                const n = new Notification("🚨 YENİ VAKA: AFAD", {
+                const n = new Notification("🚨 AFAD ACİL DURUM", {
                     body: mesaj,
                     icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png",
-                    requireInteraction: true, // Kullanıcı kapatana kadar ekranda kalır
+                    requireInteraction: true,
                     vibrate: [500, 200, 500, 200, 500]
                 });
                 n.onclick = () => { window.focus(); n.close(); };
             }
         }
 
-        // Giriş yapıldığında zırhları devreye sok
+        // Giriş Butonuna Bağlı Fonksiyon (Tasarımı bozmadan yetkileri alır)
         window.sistemiAc = () => {
-            const user = document.getElementById('adSoyad').value.trim();
-            if(!user) return;
-            localStorage.setItem('afadUser', user);
-            ekranıUyanıkTut();
-            konumTakibiBaslat(user);
+            const adSoyad = document.getElementById('adSoyad').value.trim();
+            if(!adSoyad) return;
+            
+            localStorage.setItem('afadUser', adSoyad);
             Notification.requestPermission();
-            // Mevcut login mantığın...
+            uyanikKal();
+            konumBaslat(adSoyad);
+            
+            // Buradan sonrası senin orijinal login/ekran geçiş mantığın
         };
 
-        // Firebase Dinleyici (Vaka Geldiğinde)
-        onValue(ref(db, 'vaka'), (s) => {
-            const d = s.val();
-            if(d && d.durum === "VAR") {
-                vakaBildirimiYap(d.metin);
-                // Senin mevcut ses ve titreşim kodların buraya gelecek
+        // Firebase Vaka Dinleyici
+        onValue(ref(db, 'vaka'), (snapshot) => {
+            const data = snapshot.val();
+            if(data && data.durum === "VAR") {
+                bildirimGonder(data.metin);
+                // Senin orijinal ses çalma/titreşim kodların buraya
             }
         });
-        
-        // --- DİĞER MEVCUT FONKSİYONLARIN (DOKUNULMADI) ---
+
+        // Diğer orijinal fonksiyonların (cikisYap, gecmisListele vs.) buraya gelecek
     </script>
 </body>
 </html>
