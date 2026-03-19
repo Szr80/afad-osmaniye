@@ -1,4 +1,4 @@
-// sw.js - Arka Plan Dinleyici
+// sw.js - Arka Plan Servis Motoru
 self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
@@ -7,7 +7,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-// Bildirim Yakalama
+// Arka planda gelen bildirimleri yakala
 self.addEventListener('push', (event) => {
     const data = event.data ? event.data.json() : { title: 'AFAD GÖREV', body: 'Yeni vaka bildirimi!' };
     const options = {
