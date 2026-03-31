@@ -1,7 +1,7 @@
 {
   "name": "Osmaniye AFAD",
   "short_name": "AFAD",
-  "description": "Osmaniye AFAD Saha Personel Takip ve Vaka Yönetim Sistemi",
+  "description": "Osmaniye AFAD Saha Personel Takip Sistemi",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
