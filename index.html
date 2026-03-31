@@ -24,7 +24,7 @@
     </script>
 
     <style>
-        /* Senin orijinal tüm CSS kodların burada aynen korunmuştur */
+        /* Senin orijinal tüm stillerin aynen korunmuştur */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
         body.acil-mod { background: #7f1d1d !important; }
@@ -66,7 +66,7 @@
 </head>
 <body>
     <div id="onayBox">✅ MERKEZ UYARIYI GÖRDÜ</div>
-
+    
     <div id="loginOverlay" style="position:fixed; inset:0; background:#0f172a; z-index:20000; display:flex; align-items:center; justify-content:center;">
         <div style="background:#1e293b; padding:35px; border-radius:25px; border:3px solid #f97316; width:85%; max-width:350px; display:flex; flex-direction:column; align-items:center;">
             <input type="text" id="userName" placeholder="PERSONEL ADI" style="width:100%; padding:15px; margin-bottom:15px; border-radius:10px; border:none; text-align:center; font-weight:bold; background:#0f172a; color:white;">
@@ -102,12 +102,10 @@
             <button class="btn-cikis-yuvarlak" onclick="window.cikisYap()">🚪</button>
             <span class="cikis-metni">UYGULAMADAN ÇIKIŞ</span>
         </div>
-        
         <div class="mandal-konteynir">
             <div id="kayit-uyari">🎤 SES KAYDEDİLİYOR...</div>
             <div class="btn-mandal" id="mandalBtn">🎤</div>
         </div>
-
         <div class="sezer-imza">Sistem Yazılım & Geliştirme: Sezer ÇALT</div>
     </div>
 
@@ -122,39 +120,57 @@
         const db = getDatabase(app);
         
         let currentUser = localStorage.getItem('afadUser') || "";
-        let vakaGecmis = JSON.parse(localStorage.getItem('vakaGecmis')) || [];
+        let wakeLock = null;
         let sonVakaID = ""; 
         const vakaSes = document.getElementById('vakaSes');
 
-        // --- %100 KARARLILIK İÇİN ARKA PLAN VE UYANIK KALMA MOTORU ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        // --- İZİN VE UYANIK KALMA MOTORU ---
+        async function tumIzinleriAlVeBaslat() {
+            try {
+                if (Notification.permission !== 'granted') await Notification.requestPermission();
+                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+                const dummyAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+                await dummyAudio.play();
+                return true;
+            } catch (err) { return true; }
         }
 
-        let wakeLock = null;
-        async function uyanikKal() {
-            try { 
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log("Wake Lock Aktif: Sistem Uyanık");
-                }
-            } catch (err) { console.log("Wake Lock Hatası"); }
-        }
-
-        window.sistemiAc = () => {
+        window.sistemiAc = async () => {
             const name = document.getElementById('userName').value.trim();
-            if(name) { localStorage.setItem('afadUser', name); location.reload(); }
+            if(name) {
+                await tumIzinleriAlVeBaslat();
+                localStorage.setItem('afadUser', name);
+                location.reload();
+            }
         };
 
         if(currentUser) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('pAd').innerText = currentUser.toUpperCase();
-            uyanikKal(); // Sistemi uyanık tut
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            }
+
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
-
             update(userRef, { isim: currentUser, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() });
             onDisconnect(userRef).remove();
+
+            // KESİNTİSİZ KONUM GÖNDERİMİ
+            function updateLocation(position) {
+                update(userRef, {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    timestamp: Date.now(),
+                    isim: currentUser
+                });
+            }
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(updateLocation, null, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+                setInterval(() => { navigator.geolocation.getCurrentPosition(updateLocation, null, { enableHighAccuracy: true }); }, 10000);
+            }
 
             // VAKA TAKİBİ
             onValue(ref(db, 'ortakKanal'), (s) => {
@@ -179,7 +195,6 @@
                 e.preventDefault();
                 mandal.classList.add('active');
                 kayitUyari.style.display = 'block'; 
-                if(navigator.vibrate) navigator.vibrate(50);
                 try {
                     currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(currentStream);
@@ -188,105 +203,33 @@
                         const blob = new Blob(audioChunks, { type: 'audio/webm' });
                         const reader = new FileReader(); 
                         reader.readAsDataURL(blob);
-                        reader.onloadend = () => { 
-                            push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); 
-                        };
+                        reader.onloadend = () => { push(ref(db, 'telsizMesajlari'), { ekip: currentUser, ses: reader.result, zaman: new Date().toLocaleTimeString('tr-TR') }); };
                         audioChunks = [];
                         if(currentStream) currentStream.getTracks().forEach(track => track.stop());
                     };
                     mediaRecorder.start();
-                } catch(err) { 
-                    kayitUyari.style.display = 'none';
-                    mandal.classList.remove('active');
-                }
+                } catch(err) { kayitUyari.style.display = 'none'; mandal.classList.remove('active'); }
             };
 
-            mandal.ontouchend = () => {
-                mandal.classList.remove('active');
-                kayitUyari.style.display = 'none'; 
-                if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-            };
+            mandal.ontouchend = () => { mandal.classList.remove('active'); kayitUyari.style.display = 'none'; if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop(); };
 
-            // ACİL DESTEK (SOS)
-            let sosTimer;
-            const sosBtn = document.getElementById('acilDestekBtn');
-            sosBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if(navigator.vibrate) navigator.vibrate([1000, 200, 1000, 200, 1000]);
-                sosTimer = setTimeout(() => {
-                    update(userRef, { acilDurum: true, durum: "🆘 ACİL YARDIM!", onay: false, isim: currentUser, timestamp: Date.now() });
-                    document.body.classList.add('acil-mod');
-                    sosBtn.disabled = true; sosBtn.innerText = "YARDIM ÇAĞRISI ATILDI!";
-                }, 3000);
-            });
-            sosBtn.addEventListener('touchend', () => { if(!sosBtn.disabled){ clearTimeout(sosTimer); if(navigator.vibrate) navigator.vibrate(0); } });
-
+            // SOS VE ONAY TAKİBİ
             onValue(userRef, (s) => {
                 const d = s.val();
                 if(d?.onay === true) {
                     document.getElementById('onayBox').classList.add('aktif');
                     document.body.classList.remove('acil-mod');
-                    sosBtn.disabled = false; sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
-                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() }); }, 4000);
+                    document.getElementById('acilDestekBtn').disabled = false;
+                    document.getElementById('acilDestekBtn').innerText = "🆘 ACİL DESTEK (3 SN)";
+                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF", timestamp: Date.now() }); }, 4000);
                 }
             });
-
-            // KONUM TAKİBİ - EN SAĞLAM VERSİYON
-            function updateLocation(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                update(userRef, {
-                    lat: lat,
-                    lng: lng,
-                    timestamp: Date.now(),
-                    isim: currentUser
-                });
-            }
-
-            if ("geolocation" in navigator) {
-                // watchPosition ve periyodik kontrol ile konumun kesilmesini engelliyoruz
-                navigator.geolocation.watchPosition(updateLocation, (err) => console.log(err), {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
-                });
-                
-                setInterval(() => {
-                    navigator.geolocation.getCurrentPosition(updateLocation, null, { enableHighAccuracy: true });
-                }, 10000);
-            }
         }
 
         window.durumGuncelle = (durum) => { update(ref(db, 'aktifKullanicilar/' + currentUser.replace(/\s/g, "_")), { durum: durum, timestamp: Date.now() }); };
-        
-        window.vakaKapat = () => {
-            vakaSes.pause();
-            const txt = document.getElementById('vakaMetin').innerText;
-            vakaGecmis.unshift({ metin: txt, tarih: new Date().toLocaleDateString('tr-TR'), saat: new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) });
-            vakaGecmis = vakaGecmis.slice(0, 5);
-            localStorage.setItem('vakaGecmis', JSON.stringify(vakaGecmis));
-            gecmisListele();
-            document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR...";
-            document.getElementById('vakaKutu').classList.remove('vaka-var');
-            document.getElementById('vakaButonlar').style.display = 'none';
-            durumGuncelle('HAZIR / BEKLEMEDE');
-        };
+        window.vakaKapat = () => { vakaSes.pause(); document.getElementById('vakaMetin').innerText = "GÖREV BEKLENİYOR..."; document.getElementById('vakaKutu').classList.remove('vaka-var'); document.getElementById('vakaButonlar').style.display = 'none'; durumGuncelle('HAZIR / BEKLEMEDE'); };
+        window.cikisYap = () => { if(wakeLock) wakeLock.release(); localStorage.clear(); location.reload(); };
 
-        function gecmisListele() {
-            const alan = document.getElementById('vakaGecmisAlani');
-            alan.innerHTML = "";
-            vakaGecmis.forEach(v => {
-                alan.innerHTML += `<div class="gecmis-vaka"><span class="gecmis-zaman">${v.tarih} | ${v.saat}</span>${v.metin}</div>`;
-            });
-        }
-        gecmisListele();
-        
-        window.cikisYap = () => { 
-            if(wakeLock) wakeLock.release(); 
-            localStorage.clear(); 
-            location.reload(); 
-        };
-        
         setInterval(() => {
             const simdi = new Date();
             const gunler = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
@@ -294,9 +237,7 @@
             document.getElementById('saat-ust').innerText = simdi.toLocaleTimeString('tr-TR');
         }, 1000);
 
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') uyanikKal();
-        });
+        document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); });
     </script>
 </body>
 </html>
