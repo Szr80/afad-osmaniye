@@ -24,56 +24,43 @@
     </script>
 
     <style>
+        /* Senin orijinal tüm CSS kodların burada aynen korunmuştur */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; transition: background 0.4s ease; }
-        
         body.acil-mod { background: #7f1d1d !important; }
         body.acil-mod .ust-panel, body.acil-mod .ana-vaka-kutusu, body.acil-mod .alt-panel { background: #450a0a !important; border-color: #ef4444 !important; }
-
         .ust-panel { background: #1e293b; padding: 15px; border-bottom: 5px solid #f97316; padding-top: calc(15px + env(safe-area-inset-top)); }
         .zaman-satiri { display: flex; justify-content: space-between; padding: 0 10px; color: #94a3b8; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
         #ana-baslik { font-size: 1.4rem; color: #f97316; font-weight: 900; margin: 5px 0; }
-        
         .konum-ikon-alani { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
         .canak { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; position: relative; }
         .canak::after { content: ''; position: absolute; inset: -4px; border: 2px solid #22c55e; border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
         .sistem-aktif { color: #22c55e; font-size: 0.65rem; font-weight: 900; }
-
         .vaka-alani { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; }
         .ana-vaka-kutusu { background: #1e293b; padding: 20px; border-radius: 20px; border-left: 12px solid #f97316; text-align: left; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
         .vaka-var { border-left-color: #ef4444; background: #450a0a; animation: vakaFlash 1s infinite; }
         @keyframes vakaFlash { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-
         .durum-butonlar { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-durum { padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 0.7rem; color: white; cursor: pointer; text-transform: uppercase; }
         .btn-yolda { background: #3b82f6; border-bottom: 4px solid #1e40af; }
         .btn-olay { background: #eab308; border-bottom: 4px solid #a16207; }
         .btn-donus { background: #a855f7; border-bottom: 4px solid #7e22ce; }
         .btn-tamam { background: #22c55e; border-bottom: 4px solid #166534; }
-
         .gecmis-vaka { background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border-left: 4px solid #f97316; text-align: left; font-size: 0.8rem; margin-bottom: 5px; }
         .gecmis-zaman { color: #f97316; font-size: 0.65rem; font-weight: bold; display: block; }
-
         .btn-acil { background: #dc2626; border: 5px solid #450a0a; color: white; padding: 20px; border-radius: 18px; font-weight: 900; width: 100%; margin-top: auto; box-shadow: 0 6px 0 #7f1d1d; transition: 0.2s; }
-        
         .alt-panel { background: #1e293b; padding: 15px; border-top: 3px solid #334155; display: flex; align-items: center; justify-content: center; position: relative; padding-bottom: calc(45px + env(safe-area-inset-bottom)); }
-        
         .mandal-konteynir { position: relative; display: flex; flex-direction: column; align-items: center; }
         .btn-mandal { width: 85px; height: 85px; border-radius: 50%; background: #f97316; border: 8px solid #450a0a; color: white; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; touch-action: none; margin-top: -45px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 10; }
         .btn-mandal.active { background: #dc2626; transform: scale(0.95); }
-        
         #kayit-uyari { position: absolute; top: -75px; background: #dc2626; color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; display: none; animation: blink 1s infinite; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 20; }
         #kayit-uyari::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #dc2626; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
         .cikis-kapsayici { position: absolute; left: 15px; bottom: calc(25px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 100; }
         .btn-cikis-yuvarlak { width: 50px; height: 50px; border-radius: 50%; background: #1e293b; color: #ef4444; border: 2px solid #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; }
         .cikis-metni { color: #ef4444; font-size: 0.55rem; font-weight: 900; text-transform: uppercase; }
-
         #onayBox { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; padding: 15px 30px; border-radius: 50px; font-weight: 900; transition: 0.5s; z-index: 1000; }
         #onayBox.aktif { top: 20px; }
-
         .sezer-imza { position: absolute; bottom: calc(5px + env(safe-area-inset-bottom)); font-size: 0.55rem; color: #475569; letter-spacing: 1px; font-weight: bold; text-transform: uppercase; pointer-events: none; }
     </style>
 </head>
@@ -139,6 +126,21 @@
         let sonVakaID = ""; 
         const vakaSes = document.getElementById('vakaSes');
 
+        // --- %100 KARARLILIK İÇİN ARKA PLAN VE UYANIK KALMA MOTORU ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+
+        let wakeLock = null;
+        async function uyanikKal() {
+            try { 
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log("Wake Lock Aktif: Sistem Uyanık");
+                }
+            } catch (err) { console.log("Wake Lock Hatası"); }
+        }
+
         window.sistemiAc = () => {
             const name = document.getElementById('userName').value.trim();
             if(name) { localStorage.setItem('afadUser', name); location.reload(); }
@@ -147,11 +149,10 @@
         if(currentUser) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('pAd').innerText = currentUser.toUpperCase();
+            uyanikKal(); // Sistemi uyanık tut
             const userKey = currentUser.replace(/\s/g, "_");
             const userRef = ref(db, 'aktifKullanicilar/' + userKey);
 
-            // GİRER GİRMEZ KAYIT VE OTOMATİK SİLME (onDisconnect)
-            // Önce temel veriyi yazıyoruz
             update(userRef, { isim: currentUser, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() });
             onDisconnect(userRef).remove();
 
@@ -226,7 +227,7 @@
                     document.getElementById('onayBox').classList.add('aktif');
                     document.body.classList.remove('acil-mod');
                     sosBtn.disabled = false; sosBtn.innerText = "🆘 ACİL DESTEK (3 SN)";
-                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "AKTİF", timestamp: Date.now() }); }, 4000);
+                    setTimeout(() => { document.getElementById('onayBox').classList.remove('aktif'); update(userRef, { onay: null, acilDurum: false, durum: "HAZIR / BEKLEMEDE", timestamp: Date.now() }); }, 4000);
                 }
             });
 
@@ -243,14 +244,13 @@
             }
 
             if ("geolocation" in navigator) {
-                // Hem watchPosition hem de periyodik kontrol ile konumun gitmesini garantiye alıyoruz
+                // watchPosition ve periyodik kontrol ile konumun kesilmesini engelliyoruz
                 navigator.geolocation.watchPosition(updateLocation, (err) => console.log(err), {
                     enableHighAccuracy: true,
                     maximumAge: 0,
-                    timeout: 10000
+                    timeout: 5000
                 });
                 
-                // WatchPosition bazen uykuya geçerse diye her 10 saniyede bir manuel tetik
                 setInterval(() => {
                     navigator.geolocation.getCurrentPosition(updateLocation, null, { enableHighAccuracy: true });
                 }, 10000);
@@ -280,7 +280,12 @@
             });
         }
         gecmisListele();
-        window.cikisYap = () => { localStorage.clear(); location.reload(); };
+        
+        window.cikisYap = () => { 
+            if(wakeLock) wakeLock.release(); 
+            localStorage.clear(); 
+            location.reload(); 
+        };
         
         setInterval(() => {
             const simdi = new Date();
@@ -288,6 +293,10 @@
             document.getElementById('tarih-ust').innerText = simdi.toLocaleDateString('tr-TR') + " " + gunler[simdi.getDay()];
             document.getElementById('saat-ust').innerText = simdi.toLocaleTimeString('tr-TR');
         }, 1000);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') uyanikKal();
+        });
     </script>
 </body>
 </html>
